@@ -18,6 +18,7 @@ func _ready() -> void:
 	_build_environment()
 	_build_landscape()
 	_build_roads_and_ruins()
+	_build_scenery()
 	_build_dungeon(Vector3(-48, 0, -48), "HOLLOW CRYPT")
 	_build_dungeon(Vector3(48, 0, -45), "EMBER VAULT")
 	_build_dungeon(Vector3(47, 0, 46), "CROWN OF BONES")
@@ -176,3 +177,63 @@ func _build_roads_and_ruins() -> void:
 	fire.light_energy = 1.3
 	fire.omni_range = 14
 	add_child(fire)
+
+
+func _build_scenery() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7349
+	# Jagged silhouettes frame the world without obstructing its routes.
+	for i in range(32):
+		var angle := TAU * float(i) / 32.0
+		var distance := rng.randf_range(64, 68)
+		var h := rng.randf_range(5, 13)
+		var peak := MeshInstance3D.new()
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.0
+		cone.bottom_radius = rng.randf_range(3, 7)
+		cone.height = h
+		cone.radial_segments = 5
+		peak.mesh = cone
+		peak.material_override = _mat(Color("303237"))
+		peak.position = Vector3(cos(angle) * distance, h / 2.0 - 0.4, sin(angle) * distance)
+		add_child(peak)
+	# Dark pines and dead trees give Blackwood a recognisable skyline.
+	for i in range(48):
+		var x := rng.randf_range(-62, -12)
+		var z := rng.randf_range(-58, -8)
+		if abs(x-z) < 5 or Vector2(x + 48, z + 48).length() < 8:
+			continue
+		var height := rng.randf_range(4.5, 8.0)
+		_box(Vector3(x, height * 0.4, z), Vector3(0.35, height * 0.8, 0.35), Color("302b29"))
+		var crown := MeshInstance3D.new()
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.0
+		cone.bottom_radius = rng.randf_range(1.1, 1.8)
+		cone.height = height * 0.75
+		cone.radial_segments = 5
+		crown.mesh = cone
+		crown.material_override = _mat(Color("26352d"))
+		crown.position = Vector3(x, height * 0.7, z)
+		add_child(crown)
+	# A ring of warm beacons makes the central refuge easy to find.
+	for i in range(8):
+		var angle := TAU * float(i) / 8.0
+		var p := Vector3(cos(angle) * 7.0, 0, sin(angle) * 7.0)
+		_box(p + Vector3(0, 1.1, 0), Vector3(0.25, 2.2, 0.25), Color("4b3a30"))
+		var flame := MeshInstance3D.new()
+		var orb := SphereMesh.new()
+		orb.radius = 0.25
+		orb.height = 0.5
+		flame.mesh = orb
+		var glow := _mat(Color("f9a558"))
+		glow.emission_enabled = true
+		glow.emission = Color("fa7436")
+		flame.material_override = glow
+		flame.position = p + Vector3(0, 2.3, 0)
+		add_child(flame)
+		var light := OmniLight3D.new()
+		light.position = p + Vector3(0, 2.3, 0)
+		light.light_color = Color("ff9752")
+		light.light_energy = 0.7
+		light.omni_range = 8
+		add_child(light)
