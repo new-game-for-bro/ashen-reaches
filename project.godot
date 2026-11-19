@@ -14,6 +14,10 @@ config/name="Ashen Reaches"
 run/main_scene="res://scenes/world/training_arena.tscn"
 config/features=PackedStringArray("4.7")
 
+[autoload]
+
+NetworkManager="*res://autoload/NetworkManager.gd"
+
 [display]
 
 window/size/viewport_width=1280
