@@ -1,0 +1,20 @@
+[gd_scene load_steps=6 format=3]
+[ext_resource type="PackedScene" path="res://scenes/characters/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/training_dummy.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/player/arena.gd" id="3"]
+[sub_resource type="BoxMesh" id="GroundMesh"]
+size = Vector3(48, 1, 48)
+[sub_resource type="BoxShape3D" id="GroundShape"]
+size = Vector3(48, 1, 48)
+[node name="TrainingArena" type="Node3D"]
+script = ExtResource("3")
+[node name="Ground" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.5, 0)
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("GroundMesh")
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("GroundShape")
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector3(0, 0, 5)
+[node name="TrainingDummy" parent="." instance=ExtResource("2")]
+position = Vector3(0, 0, -2)
