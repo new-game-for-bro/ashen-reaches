@@ -1,6 +1,6 @@
 # Running the project
 
-Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Story prologue, Solo arena, Host, Join, Disconnect and Quit.
+Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Story prologue, Solo arena, Battle Royale, Host, Join, Disconnect and Quit.
 
 ## Story prologue
 
@@ -11,6 +11,12 @@ The Unwritten Sky prologue and the Ashen Reaches multiplayer test now share one 
 ## Solo training
 
 Choose **Solo arena**. WASD moves, Shift sprints, Space jumps, C or Ctrl dodges, the mouse orbits, left click performs a light attack, right click a heavy attack, Q toggles lock-on, and Escape releases the cursor. Approach and face the dummy to hit it; its health resets at zero.
+
+## Battle Royale
+
+Choose **Battle Royale** for a single-player last-survivor match against six bots. Stay inside the glowing ring as it shrinks; being outside damages you. Rivals attack each other and you. WASD moves, mouse orbits, Shift sprints, Space jumps, C dodges, left and right mouse buttons attack, and Q locks onto a rival. Press P to return to the menu; after a match, R starts another.
+
+This is a solo prototype with placeholder art and simple bot behavior. Online battle royale, loot, equipment, matchmaking and persistent rewards are not implemented.
 
 ## Shared arena (work in progress)
 
@@ -43,3 +49,5 @@ godot --headless --path . --script res://tests/arena_smoke.gd -- client
 The first pair tests the roster and chat on UDP 18991; the second tests spawning and server-controlled movement on UDP 18992. A dedicated server connection can be tested by running `godot --headless --path . --server` and then `godot --headless --path . --script res://tests/dedicated_smoke.gd`.
 
 The older first-person prototype remains available as `world.tscn`.
+
+Run `godot --headless --path . --script res://tests/royale_smoke.gd` to test the battle royale rules.

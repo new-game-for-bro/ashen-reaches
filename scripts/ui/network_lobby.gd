@@ -40,13 +40,13 @@ func _ready() -> void:
 	column.add_child(address)
 	var buttons := HBoxContainer.new()
 	column.add_child(buttons)
-	for action: String in ["Story prologue", "Solo arena", "Host", "Join", "Disconnect", "Quit"]:
+	for action: String in ["Story prologue", "Solo arena", "Battle Royale", "Host", "Join", "Disconnect", "Quit"]:
 		var button := Button.new()
 		button.text = action
 		button.pressed.connect(_button_pressed.bind(action))
 		buttons.add_child(button)
 	status = Label.new()
-	status.text = "Play the story prologue, train solo, or host/join the multiplayer test arena."
+	status.text = "Choose a mode. Battle Royale is currently a solo match against bots."
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
 	roster = Label.new()
@@ -70,6 +70,9 @@ func _button_pressed(action: String) -> void:
 		"Story prologue":
 			NetworkManager.disconnect_session()
 			get_tree().change_scene_to_file("res://scenes/story/prologue.tscn")
+		"Battle Royale":
+			NetworkManager.disconnect_session()
+			get_tree().change_scene_to_file("res://scenes/battle_royale/battle_royale.tscn")
 		"Host":
 			var error := NetworkManager.host_server(username.text)
 			if error != OK:

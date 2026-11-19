@@ -1,5 +1,8 @@
 extends CharacterBody3D
 
+signal health_changed(value: int)
+signal defeated
+
 const InputSetup = preload("res://scripts/player/input_setup.gd")
 
 const MOVE_SPEED: float = 5.0
@@ -16,6 +19,8 @@ const ATTACK_COOLDOWN: float = 0.55
 var dodge_time: float = 0.0
 var attack_time: float = 0.0
 var dodge_direction: Vector3 = Vector3.ZERO
+var health: int = 100
+var alive: bool = true
 var target: Node3D
 var placeholder_blade: MeshInstance3D
 
@@ -77,6 +82,8 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 func attack(heavy: bool) -> void:
+	if not alive:
+		return
 	if attack_time > 0.0 or dodge_time > 0.0:
 		return
 	attack_time = ATTACK_COOLDOWN * (1.5 if heavy else 1.0)
@@ -131,3 +138,17 @@ func _add_placeholder() -> void:
 	blade.rotation.z = -0.3
 	visual.add_child(blade)
 	placeholder_blade = blade
+
+
+func hit(amount: int) -> void:
+	if not alive:
+		return
+	health = maxi(0, health - amount)
+	health_changed.emit(health)
+	if health == 0:
+		alive = false
+		remove_from_group("royale_contestants")
+		velocity = Vector3.ZERO
+		set_physics_process(false)
+		set_process_unhandled_input(false)
+		defeated.emit()
