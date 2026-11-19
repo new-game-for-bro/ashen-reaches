@@ -5,9 +5,7 @@ func _initialize() -> void:
 	call_deferred("start")
 func start() -> void:
 	role = OS.get_cmdline_user_args()[0]
-	manager = load("res://autoload/NetworkManager.gd").new()
-	manager.name = "NetworkManager"
-	root.add_child(manager)
+	manager = root.get_node("NetworkManager")
 	manager.roster_changed.connect(on_roster)
 	manager.chat_received.connect(on_chat)
 	if role == "server":

@@ -8,6 +8,13 @@ var roster: Label
 var history: RichTextLabel
 
 func _ready() -> void:
+	if "--server" in OS.get_cmdline_user_args() or "--server" in OS.get_cmdline_args():
+		var error := NetworkManager.host_server("Dedicated server", NetworkManager.DEFAULT_PORT, true)
+		if error == OK:
+			get_tree().change_scene_to_file.call_deferred("res://scenes/network/network_arena.tscn")
+		else:
+			push_error("Could not start dedicated server: " + error_string(error))
+		return
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var background := ColorRect.new()
 	background.color = Color("1d2024")
@@ -33,13 +40,13 @@ func _ready() -> void:
 	column.add_child(address)
 	var buttons := HBoxContainer.new()
 	column.add_child(buttons)
-	for action: String in ["Host", "Join", "Disconnect", "Solo arena"]:
+	for action: String in ["Host", "Join", "Disconnect", "Solo arena", "Quit"]:
 		var button := Button.new()
 		button.text = action
 		button.pressed.connect(_button_pressed.bind(action))
 		buttons.add_child(button)
 	status = Label.new()
-	status.text = "Offline. This lobby tests connections and chat; shared gameplay is not built yet."
+	status.text = "Host or join to enter the shared test arena. Combat remains local-only."
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
 	roster = Label.new()
@@ -64,19 +71,29 @@ func _button_pressed(action: String) -> void:
 			var error := NetworkManager.host_server(username.text)
 			if error != OK:
 				_set_status("Host failed: " + error_string(error))
+			else:
+				get_tree().change_scene_to_file.call_deferred("res://scenes/network/network_arena.tscn")
 		"Join":
-			var error := NetworkManager.join_server(address.text, username.text)
-			if error != OK:
-				_set_status("Join failed: " + error_string(error))
+			if address.text.strip_edges().is_empty():
+				_set_status("Enter a server address.")
+			else:
+				NetworkManager.pending_address = address.text
+				NetworkManager.pending_username = username.text
+				get_tree().change_scene_to_file.call_deferred("res://scenes/network/network_arena.tscn")
 		"Disconnect":
 			NetworkManager.disconnect_session()
 			_set_status("Offline")
+		"Quit":
+			NetworkManager.disconnect_session()
+			get_tree().quit()
 		"Solo arena":
 			NetworkManager.disconnect_session()
 			get_tree().change_scene_to_file("res://scenes/world/training_arena.tscn")
 
 func _set_status(value: String) -> void:
 	status.text = value
+	if value == "connected":
+		get_tree().change_scene_to_file.call_deferred("res://scenes/network/network_arena.tscn")
 
 func _set_roster(players: Dictionary) -> void:
 	var names: PackedStringArray = []

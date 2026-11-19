@@ -10,6 +10,10 @@ const MAX_NAME_LENGTH: int = 24
 const MAX_CHAT_LENGTH: int = 200
 const MIN_CHAT_INTERVAL_MS: int = 750
 
+var dedicated: bool = false
+var pending_address: String = ""
+var pending_username: String = ""
+var pending_port: int = DEFAULT_PORT
 var players: Dictionary = {}
 var player_name: String = "Emberbound"
 var chat_times: Dictionary = {}
@@ -20,17 +24,19 @@ func _ready() -> void:
 	multiplayer.connection_failed.connect(_connection_failed)
 	multiplayer.server_disconnected.connect(_server_disconnected)
 
-func host_server(username: String, port: int = DEFAULT_PORT) -> Error:
+func host_server(username: String, port: int = DEFAULT_PORT, is_dedicated: bool = false) -> Error:
 	if not _valid_port(port):
 		return ERR_INVALID_PARAMETER
 	disconnect_session()
+	dedicated = is_dedicated
 	player_name = _sanitize_name(username)
 	var peer := ENetMultiplayerPeer.new()
-	var result := peer.create_server(port, MAX_PLAYERS - 1)
+	var result := peer.create_server(port, MAX_PLAYERS if dedicated else MAX_PLAYERS - 1)
 	if result != OK:
 		return result
 	multiplayer.multiplayer_peer = peer
-	players[1] = player_name
+	if not dedicated:
+		players[1] = player_name
 	roster_changed.emit(players.duplicate())
 	connection_state_changed.emit("hosting")
 	return OK
