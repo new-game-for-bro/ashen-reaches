@@ -7,10 +7,13 @@ var sprinting: bool = false
 var mode: String = "solo"
 var look_finger: int = -1
 var buttons: Dictionary = {}
+var joystick: Control
+var look_sensitivity: float = 0.003
+var invert_y: bool = false
 
 func _ready() -> void:
 	layer = 10
-	var joystick: Control = Joystick.new()
+	joystick = Joystick.new()
 	joystick.anchor_left = 0.0
 	joystick.anchor_right = 0.0
 	joystick.anchor_top = 1.0
@@ -21,11 +24,38 @@ func _ready() -> void:
 	joystick.offset_bottom = -25
 	joystick.vector_changed.connect(_on_move)
 	add_child(joystick)
-	var actions: Array[String] = []
-	match mode:
-		"story": actions = ["Attack", "Dodge", "Interact", "Sprint", "Menu"]
-		"network": actions = ["Jump", "Sprint", "Chat", "Menu"]
-		_: actions = ["Attack", "Heavy", "Dodge", "Jump", "Lock", "Sprint", "Retry", "Menu"]
+	if mode == "story":
+		_build_story_buttons()
+	else:
+		_build_standard_buttons()
+
+func _build_story_buttons() -> void:
+	_make_button("Exit", Vector2(0, 0), Rect2(20, 18, 100, 56))
+	_make_button("Pause", Vector2(1, 0), Rect2(-120, 18, 100, 56))
+	_make_button("Interact", Vector2(1, 1), Rect2(-165, -330, 140, 64))
+	_make_button("Attack", Vector2(1, 1), Rect2(-155, -245, 130, 105))
+	_make_button("Dodge", Vector2(1, 1), Rect2(-265, -125, 105, 74))
+	buttons["Interact"].visible = false
+
+func _make_button(action: String, anchor: Vector2, bounds: Rect2) -> void:
+	var button := Button.new()
+	button.text = action
+	button.anchor_left = anchor.x
+	button.anchor_right = anchor.x
+	button.anchor_top = anchor.y
+	button.anchor_bottom = anchor.y
+	button.offset_left = bounds.position.x
+	button.offset_top = bounds.position.y
+	button.offset_right = bounds.end.x
+	button.offset_bottom = bounds.end.y
+	button.focus_mode = Control.FOCUS_NONE
+	button.add_theme_font_size_override("font_size", 20)
+	button.pressed.connect(_on_action.bind(action))
+	add_child(button)
+	buttons[action] = button
+
+func _build_standard_buttons() -> void:
+	var actions: Array = ["Jump", "Sprint", "Chat", "Menu"] if mode == "network" else ["Attack", "Heavy", "Dodge", "Jump", "Lock", "Sprint", "Retry", "Menu"]
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 8)
@@ -48,18 +78,20 @@ func _ready() -> void:
 		button.pressed.connect(_on_action.bind(action))
 		grid.add_child(button)
 		buttons[action] = button
-	var instruction := Label.new()
-	instruction.text = "Drag here to look"
-	instruction.anchor_left = 1.0
-	instruction.anchor_right = 1.0
-	instruction.anchor_top = 0.5
-	instruction.anchor_bottom = 0.5
-	instruction.offset_left = -220
-	instruction.offset_right = -20
-	instruction.offset_top = -110
-	instruction.offset_bottom = -80
-	instruction.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(instruction)
+
+func set_story_interaction(label: String) -> void:
+	if mode == "story" and buttons.has("Interact"):
+		buttons["Interact"].visible = not label.is_empty()
+		buttons["Interact"].text = label
+
+func set_exit_attention(enabled: bool) -> void:
+	if mode == "story" and buttons.has("Exit"):
+		buttons["Exit"].modulate = Color("ffd366") if enabled else Color.WHITE
+
+func reset_input() -> void:
+	move_vector = Vector2.ZERO
+	look_finger = -1
+	joystick.reset()
 
 func _on_move(value: Vector2) -> void:
 	move_vector = value

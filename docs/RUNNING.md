@@ -6,13 +6,13 @@ Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers
 
 ## Android prototype
 
-On an Android device, use the left joystick to move and drag an unused area on the right to orbit the camera. The action buttons vary by mode. Sprint is a toggle. In Battle Royale, Retry starts a new match after it ends; Menu returns to the mode selector. The online test has jump, sprint, chat and menu controls, but no networked combat yet.
+On an Android device, use the left joystick to move and drag an unused area on the right to orbit the camera, including while moving. In the story, Attack and Dodge are on the lower right, and a contextual interaction button appears when you are near the gate or platform. Dodge follows the joystick direction, or moves backward if centered. Exit at the upper left opens the in-world logout menu and lights up after shutdown. Pause at the upper right stops the story and provides camera sensitivity and vertical-look settings for the current session. The action buttons vary by mode. Sprint is a toggle. In Battle Royale, Retry starts a new match after it ends; Menu returns to the mode selector. The online test has jump, sprint, chat and menu controls, but no networked combat yet.
 
 The Android export preset builds a debug APK with a development signing key. Install the official Godot export templates matching your Godot version, an Android SDK with platform-tools and build-tools, and a compatible JDK; configure their paths and a debug keystore in Godot Editor Settings, then use Project > Export > Android > Export Project. The debug APK is not a release build. A phone has not yet been used to verify layout, performance, networking, installation or input. The preset exports only selected scenes and scripts, plus the story JSON, so unrelated local models are not packaged.
 
 ## Story prologue
 
-Choose **Story prologue** to play *The Last Logout*. Move with WASD, orbit with the mouse, sprint with Shift, attack with Space or left click, dodge with C, and interact with E. Follow the on-screen objectives to the gate and the train. Escape releases the cursor; P returns to the menu. The story currently uses placeholder shapes and scripted characters. It is single-player and has no save system yet.
+Choose **Story prologue** to play *The Last Logout*. Move with WASD, orbit with the mouse, sprint with Shift, attack with Space or left click, dodge with C, and interact with E. Follow the on-screen objectives to the gate and the train. When the shutdown ends, open Exit, then continue toward the gate. Escape releases the cursor; P returns to the menu. The story currently uses placeholder shapes and scripted characters. It is single-player and has no save system yet.
 
 The Unwritten Sky prologue and the Ashen Reaches multiplayer test now share one project and menu. Their different settings and characters have not yet been reconciled into a single continuous narrative; shared character progression and co-op story play are not implemented.
 

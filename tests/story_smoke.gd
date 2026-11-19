@@ -18,6 +18,8 @@ func run_test() -> void:
 	game._process(9.0)
 	assert(game.stage == "exit")
 	game._on_interact()
+	assert(game.stage == "exit" and game.modal_kind == "logout")
+	game._close_logout()
 	assert(game.stage == "gate")
 	game._on_interact()
 	assert(game.stage == "gate")

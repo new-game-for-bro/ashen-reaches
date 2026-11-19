@@ -13,6 +13,8 @@ var timer: float = 0.0
 var objective_label: Label
 var dialogue_label: Label
 var timer_label: Label
+var modal_layer: CanvasLayer
+var modal_kind: String = ""
 
 func _ready() -> void:
 	var json := JSON.new()
@@ -133,16 +135,16 @@ func _build_ui() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	var header := Label.new()
-	header.position = Vector2(24, 18)
+	header.position = Vector2(140, 18) if OS.has_feature("mobile") else Vector2(24, 18)
 	header.text = "ASHEN REACHES  /  THE LAST LOGOUT"
 	header.add_theme_font_size_override("font_size", 22)
 	layer.add_child(header)
 	objective_label = Label.new()
-	objective_label.position = Vector2(24, 55)
+	objective_label.position = Vector2(140, 55) if OS.has_feature("mobile") else Vector2(24, 55)
 	objective_label.add_theme_font_size_override("font_size", 18)
 	layer.add_child(objective_label)
 	timer_label = Label.new()
-	timer_label.position = Vector2(24, 86)
+	timer_label.position = Vector2(140, 86) if OS.has_feature("mobile") else Vector2(24, 86)
 	layer.add_child(timer_label)
 	dialogue_label = Label.new()
 	dialogue_label.position = Vector2(24, 350) if OS.has_feature("mobile") else Vector2(24, 570)
@@ -159,6 +161,8 @@ func _set_stage(value: String) -> void:
 	stage = value
 	objective_label.text = "OBJECTIVE: " + str(story[value]["objective"])
 	dialogue_label.text = str(story[value]["dialogue"])
+	if player.touch_controls:
+		player.touch_controls.set_exit_attention(value == "exit")
 	if value == "countdown":
 		timer = 8.0
 	elif value == "gate":
@@ -171,6 +175,7 @@ func _set_stage(value: String) -> void:
 		departing.tween_property(train, "position:x", 75.0, 8.0)
 
 func _process(delta: float) -> void:
+	_update_touch_context()
 	if stage == "countdown":
 		timer = maxf(0.0, timer - delta)
 		timer_label.text = "SHUTDOWN IN: %d" % ceili(timer)
@@ -194,7 +199,7 @@ func _on_dodge() -> void:
 func _on_interact() -> void:
 	match stage:
 		"exit":
-			_set_stage("gate")
+			open_logout_menu()
 		"gate":
 			if player.global_position.distance_to(GATE_POS) < 9.0:
 				_set_stage("train")
@@ -216,3 +221,120 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")
+
+
+func _update_touch_context() -> void:
+	if not is_instance_valid(player) or not player.touch_controls:
+		return
+	var label := ""
+	var pos: Vector3 = player.global_position
+	if stage == "gate" and pos.distance_to(GATE_POS) < 9.0:
+		label = "Talk"
+	elif stage == "train" and pos.distance_to(TRAIN_POS) < 9.0:
+		label = "Board"
+	elif stage == "ending" and pos.distance_to(TRAIN_POS) < 9.0:
+		label = "Look"
+	player.touch_controls.set_story_interaction(label)
+	player.touch_controls.set_exit_attention(stage == "exit")
+
+func open_logout_menu() -> void:
+	if modal_layer:
+		return
+	var text_value := "The logout option is unavailable during the duel."
+	if stage == "exit":
+		text_value = "RETURN ROUTE SEVERED.\nYour body is waiting."
+	elif stage in ["gate", "train", "ending", "complete"]:
+		text_value = "RETURN ROUTE SEVERED.\nYour body is waiting."
+	_create_modal("logout", "IN-WORLD EXIT", text_value)
+	_add_modal_button("Continue", _close_logout)
+
+func open_pause_menu() -> void:
+	if modal_layer:
+		return
+	_create_modal("pause", "PAUSED", "Touch settings")
+	var column: VBoxContainer = modal_layer.get_node("Overlay/Panel/Column")
+	var sensitivity_label := Label.new()
+	sensitivity_label.text = "Camera sensitivity"
+	column.add_child(sensitivity_label)
+	var slider := HSlider.new()
+	slider.min_value = 0.0015
+	slider.max_value = 0.006
+	slider.step = 0.0001
+	slider.value = player.touch_controls.look_sensitivity if player.touch_controls else 0.003
+	slider.custom_minimum_size = Vector2(400, 35)
+	slider.value_changed.connect(_set_touch_sensitivity)
+	column.add_child(slider)
+	var invert := CheckBox.new()
+	invert.text = "Invert vertical look"
+	invert.button_pressed = player.touch_controls.invert_y if player.touch_controls else false
+	invert.toggled.connect(_set_touch_invert)
+	column.add_child(invert)
+	_add_modal_button("Resume", _close_modal)
+	_add_modal_button("Return to main menu", _return_to_menu)
+
+func _create_modal(kind: String, title: String, body: String) -> void:
+	modal_kind = kind
+	if player.touch_controls:
+		player.touch_controls.reset_input()
+	player.velocity = Vector3.ZERO
+	modal_layer = CanvasLayer.new()
+	modal_layer.layer = 20
+	modal_layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(modal_layer)
+	var overlay := ColorRect.new()
+	overlay.name = "Overlay"
+	overlay.color = Color(0.03, 0.04, 0.06, 0.88)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	modal_layer.add_child(overlay)
+	var panel := CenterContainer.new()
+	panel.name = "Panel"
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(panel)
+	var column := VBoxContainer.new()
+	column.name = "Column"
+	column.custom_minimum_size = Vector2(450, 0)
+	column.add_theme_constant_override("separation", 14)
+	panel.add_child(column)
+	var heading := Label.new()
+	heading.text = title
+	heading.add_theme_font_size_override("font_size", 30)
+	column.add_child(heading)
+	var description := Label.new()
+	description.text = body
+	description.add_theme_font_size_override("font_size", 20)
+	column.add_child(description)
+	get_tree().paused = true
+
+func _add_modal_button(title: String, action: Callable) -> void:
+	var button := Button.new()
+	button.text = title
+	button.custom_minimum_size.y = 55
+	button.pressed.connect(action)
+	modal_layer.get_node("Overlay/Panel/Column").add_child(button)
+
+func _set_touch_sensitivity(value: float) -> void:
+	if player.touch_controls:
+		player.touch_controls.look_sensitivity = value
+
+func _set_touch_invert(value: bool) -> void:
+	if player.touch_controls:
+		player.touch_controls.invert_y = value
+
+func _close_logout() -> void:
+	var advance := stage == "exit"
+	_close_modal()
+	if advance:
+		_set_stage("gate")
+
+func _close_modal() -> void:
+	get_tree().paused = false
+	if modal_layer:
+		modal_layer.queue_free()
+		modal_layer = null
+	modal_kind = ""
+
+func _return_to_menu() -> void:
+	_close_modal()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")

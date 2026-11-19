@@ -68,9 +68,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_SPACE and control_enabled:
 			attack()
 		elif event.keycode == KEY_C and control_enabled and dodge_time <= 0.0:
-			dodge_direction = -avatar.global_basis.z
-			dodge_time = 0.25
-			dodge_requested.emit()
+			_start_dodge()
 	if event is InputEventMouseButton and event.pressed:
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -121,13 +119,28 @@ func _on_touch_action(action: String) -> void:
 	match action:
 		"Attack": attack()
 		"Interact": interact_requested.emit()
-		"Dodge":
-			if dodge_time <= 0.0:
-				dodge_direction = -avatar.global_basis.z
-				dodge_time = 0.25
-				dodge_requested.emit()
-		"Menu": get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")
+		"Dodge": _start_dodge()
+		"Exit": get_parent().open_logout_menu()
+		"Pause": get_parent().open_pause_menu()
 
 func _on_touch_look(relative: Vector2) -> void:
-	camera_pivot.rotation.y -= relative.x * 0.003
-	camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - relative.y * 0.003, -0.8, 0.55)
+	var sensitivity: float = touch_controls.look_sensitivity
+	var vertical: float = -1.0 if touch_controls.invert_y else 1.0
+	camera_pivot.rotation.y -= relative.x * sensitivity
+	camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - relative.y * sensitivity * vertical, -0.8, 0.55)
+
+
+func _start_dodge() -> void:
+	if dodge_time > 0.0 or not control_enabled:
+		return
+	var axis := Vector2.ZERO
+	if touch_controls:
+		axis = touch_controls.move_vector
+	else:
+		axis = Vector2(float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)), float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W))).normalized()
+	if axis.length() > 0.12:
+		dodge_direction = (Basis(Vector3.UP, camera_pivot.rotation.y) * Vector3(axis.x, 0, axis.y)).normalized()
+	else:
+		dodge_direction = -avatar.global_basis.z
+	dodge_time = 0.25
+	dodge_requested.emit()
