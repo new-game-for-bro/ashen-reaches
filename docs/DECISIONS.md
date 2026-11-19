@@ -12,3 +12,4 @@
 - The user requested one game project, so The Unwritten Sky prologue now lives inside Ashen Reaches and is selectable from its startup menu. Its Latch/Amara/Ren story is retained intact for now; its relationship to Vael and the existing Ashen Reaches story needs a creative decision before either canon is rewritten. The prologue and multiplayer test do not yet share progression or a playable world.
 
 - Battle Royale starts as a separate solo mode with six bots, a shrinking damaging zone, and no respawns. Online battle royale and shared progression remain future work; the existing multiplayer arena is unchanged.
+- The game targets mobile devices. Story, solo arena, battle royale and multiplayer need touch-friendly interfaces, responsive layouts, mobile performance budgets and mobile export testing. The current prototypes use keyboard and mouse and are not yet mobile-ready. Android and iOS support and minimum device specifications have not yet been selected.

@@ -1,5 +1,7 @@
 # Running the project
 
+The intended target is mobile. The current builds are desktop prototypes using keyboard and mouse; touch controls, mobile UI, performance tuning and Android/iOS exports have not been implemented or tested yet.
+
 Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Story prologue, Solo arena, Battle Royale, Host, Join, Disconnect and Quit.
 
 ## Story prologue
