@@ -1,0 +1,11 @@
+{
+  "duel": {"objective":"Land a light attack on Ren.","dialogue":"REN: One clean hit. Then you can brag about it forever."},
+  "dodge": {"objective":"Dodge with C.","dialogue":"REN: Your turn to move. Don't let me catch you standing still."},
+  "counter": {"objective":"Land the final attack on Ren.","dialogue":"REN: There. You always wait too long for that one."},
+  "countdown": {"objective":"The final shutdown is counting down.","dialogue":"SYSTEM: Thank you for playing. The world will close shortly."},
+  "exit": {"objective":"Press E to open the exit menu.","dialogue":"AMARA: Ren. I can feel the rain."},
+  "gate": {"objective":"Follow the road to the city gate. Press E near the giant.","dialogue":"SYSTEM: Return route severed. Your body is waiting."},
+  "train": {"objective":"Reach Ren at the platform. Press E near the train.","dialogue":"GIANT: My family is behind that door.\nREN: Amara. There are lights on the old tracks."},
+  "ending": {"objective":"Walk to the empty platform and press E.","dialogue":"REN: Come on. Someone in here knows the way out.\nThe doors close before you can reach him."},
+  "complete": {"objective":"PROLOGUE COMPLETE — The Unwritten Sky", "dialogue":"AMARA: Ren, where are you going?"}
+}

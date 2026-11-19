@@ -1,6 +1,12 @@
 # Running the project
 
-Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Host, Join, Solo arena, Disconnect and Quit.
+Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Story prologue, Solo arena, Host, Join, Disconnect and Quit.
+
+## Story prologue
+
+Choose **Story prologue** to play *The Last Logout*. Move with WASD, orbit with the mouse, sprint with Shift, attack with Space or left click, dodge with C, and interact with E. Follow the on-screen objectives to the gate and the train. Escape releases the cursor; P returns to the menu. The story currently uses placeholder shapes and scripted characters. It is single-player and has no save system yet.
+
+The Unwritten Sky prologue and the Ashen Reaches multiplayer test now share one project and menu. Their different settings and characters have not yet been reconciled into a single continuous narrative; shared character progression and co-op story play are not implemented.
 
 ## Solo training
 

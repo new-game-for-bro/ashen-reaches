@@ -26,7 +26,7 @@ func _ready() -> void:
 	column.size = Vector2(600, 520)
 	add_child(column)
 	var title := Label.new()
-	title.text = "ASHEN REACHES  /  NETWORK TEST LOBBY"
+	title.text = "ASHEN REACHES  /  CHOOSE YOUR MODE"
 	title.add_theme_font_size_override("font_size", 22)
 	column.add_child(title)
 	username = LineEdit.new()
@@ -40,13 +40,13 @@ func _ready() -> void:
 	column.add_child(address)
 	var buttons := HBoxContainer.new()
 	column.add_child(buttons)
-	for action: String in ["Host", "Join", "Disconnect", "Solo arena", "Quit"]:
+	for action: String in ["Story prologue", "Solo arena", "Host", "Join", "Disconnect", "Quit"]:
 		var button := Button.new()
 		button.text = action
 		button.pressed.connect(_button_pressed.bind(action))
 		buttons.add_child(button)
 	status = Label.new()
-	status.text = "Host or join to enter the shared test arena. Combat remains local-only."
+	status.text = "Play the story prologue, train solo, or host/join the multiplayer test arena."
 	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(status)
 	roster = Label.new()
@@ -67,6 +67,9 @@ func _ready() -> void:
 
 func _button_pressed(action: String) -> void:
 	match action:
+		"Story prologue":
+			NetworkManager.disconnect_session()
+			get_tree().change_scene_to_file("res://scenes/story/prologue.tscn")
 		"Host":
 			var error := NetworkManager.host_server(username.text)
 			if error != OK:
