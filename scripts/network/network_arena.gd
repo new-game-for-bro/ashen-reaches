@@ -65,7 +65,7 @@ func _build_ui() -> void:
 	add_child(layer)
 	var hint := Label.new()
 	hint.position = Vector2(20, 15)
-	hint.text = "MULTIPLAYER TEST  |  WASD move · Shift sprint · Space jump · Enter chat · Esc cursor"
+	hint.text = "MULTIPLAYER TEST  |  Move with the joystick; drag to look" if OS.has_feature("mobile") else "MULTIPLAYER TEST  |  WASD move · Shift sprint · Space jump · Enter chat · Esc cursor"
 	layer.add_child(hint)
 	chat_output = RichTextLabel.new()
 	chat_output.position = Vector2(20, 60)

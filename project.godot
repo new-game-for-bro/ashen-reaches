@@ -11,6 +11,7 @@ config_version=5
 [application]
 
 config/name="Ashen Reaches"
+config/icon="res://assets/icon.svg"
 run/main_scene="res://scenes/ui/network_lobby.tscn"
 config/features=PackedStringArray("4.7")
 
@@ -22,8 +23,12 @@ NetworkManager="*res://autoload/NetworkManager.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/handheld/orientation=4
 
 [rendering]
+
+textures/vram_compression/import_etc2_astc=true
 
 renderer/rendering_method="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.08, 0.09, 0.1, 1)

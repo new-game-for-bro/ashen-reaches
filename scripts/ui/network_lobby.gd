@@ -38,11 +38,13 @@ func _ready() -> void:
 	address.placeholder_text = "Server IP or hostname"
 	address.text = "127.0.0.1"
 	column.add_child(address)
-	var buttons := HBoxContainer.new()
+	var buttons := GridContainer.new()
+	buttons.columns = 3
 	column.add_child(buttons)
 	for action: String in ["Story prologue", "Solo arena", "Battle Royale", "Host", "Join", "Disconnect", "Quit"]:
 		var button := Button.new()
 		button.text = action
+		button.custom_minimum_size = Vector2(175, 50)
 		button.pressed.connect(_button_pressed.bind(action))
 		buttons.add_child(button)
 	status = Label.new()
@@ -53,7 +55,7 @@ func _ready() -> void:
 	roster.text = "Players: —"
 	column.add_child(roster)
 	history = RichTextLabel.new()
-	history.custom_minimum_size = Vector2(0, 240)
+	history.custom_minimum_size = Vector2(0, 110)
 	history.bbcode_enabled = false
 	column.add_child(history)
 	message_input = LineEdit.new()

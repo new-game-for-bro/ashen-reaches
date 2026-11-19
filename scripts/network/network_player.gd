@@ -1,4 +1,5 @@
 extends CharacterBody3D
+const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 
 const SPEED: float = 5.0
 const SPRINT_SPEED: float = 8.0
@@ -20,6 +21,8 @@ var remote_position: Vector3
 var has_snapshot: bool = false
 var health: int = 100
 var animation_state: String = "idle"
+var touch_controls: CanvasLayer
+var mobile_jump: bool = false
 var pivot: Node3D
 var visual: Node3D
 var label: Label3D
@@ -59,7 +62,10 @@ func _ready() -> void:
 		var camera := Camera3D.new()
 		camera.current = true
 		arm.add_child(camera)
-		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		if OS.has_feature("mobile"):
+			_enable_touch_controls()
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not pivot:
@@ -76,11 +82,15 @@ func _physics_process(delta: float) -> void:
 	if multiplayer.get_unique_id() == peer_id and pivot:
 		var typing := get_viewport().gui_get_focus_owner() is LineEdit
 		var axis := Vector2.ZERO if typing else Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-		var jump := not typing and Input.is_action_just_pressed("jump")
+		if not typing and touch_controls and touch_controls.move_vector.length() > 0.0:
+			axis = touch_controls.move_vector
+		var jump := not typing and (Input.is_action_just_pressed("jump") or mobile_jump)
+		var run: bool = not typing and (Input.is_action_pressed("sprint") or (touch_controls != null and touch_controls.sprinting))
+		mobile_jump = false
 		if multiplayer.is_server():
-			_set_input(axis, pivot.rotation.y, not typing and Input.is_action_pressed("sprint"), jump)
+			_set_input(axis, pivot.rotation.y, run, jump)
 		else:
-			_submit_input.rpc_id(1, axis, pivot.rotation.y, not typing and Input.is_action_pressed("sprint"), jump)
+			_submit_input.rpc_id(1, axis, pivot.rotation.y, run, jump)
 	if multiplayer.is_server():
 		if Time.get_ticks_msec() - last_input_ms > INPUT_TIMEOUT_MS:
 			input_direction = Vector2.ZERO
@@ -134,3 +144,29 @@ func _receive_state(position_value: Vector3, yaw: float, hp: int, state: String)
 		animation_state = state
 		label.text = display_name + "  ·  HP " + str(health)
 		has_snapshot = true
+
+
+func _enable_touch_controls() -> void:
+	if touch_controls:
+		return
+	touch_controls = TouchControls.new()
+	touch_controls.mode = "network"
+	add_child(touch_controls)
+	touch_controls.action_pressed.connect(_on_touch_action)
+	touch_controls.look_dragged.connect(_on_touch_look)
+
+func _on_touch_action(action: String) -> void:
+	match action:
+		"Jump": mobile_jump = true
+		"Chat":
+			var arena := get_parent().get_parent()
+			if arena.chat_input:
+				arena.chat_input.visible = true
+				arena.chat_input.grab_focus()
+		"Menu":
+			NetworkManager.disconnect_session()
+			get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")
+
+func _on_touch_look(relative: Vector2) -> void:
+	pivot.rotation.y -= relative.x * 0.003
+	pivot.rotation.x = clampf(pivot.rotation.x - relative.y * 0.003, -0.8, 0.55)

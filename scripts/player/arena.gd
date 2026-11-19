@@ -22,7 +22,7 @@ func _ready() -> void:
 	add_child(layer)
 	var instructions := Label.new()
 	instructions.position = Vector2(20, 20)
-	instructions.text = "ASHEN REACHES  /  TRAINING ARENA\nWASD move  •  Mouse orbit  •  Shift run  •  Space jump  •  C dodge\nLeft click light attack  •  Right click heavy attack  •  Q lock on  •  Esc cursor"
+	instructions.text = "TRAINING ARENA  ·  Move with the joystick; drag to look" if OS.has_feature("mobile") else "ASHEN REACHES  /  TRAINING ARENA\nWASD move  •  Mouse orbit  •  Shift run  •  Space jump  •  C dodge\nLeft click light attack  •  Right click heavy attack  •  Q lock on  •  Esc cursor"
 	instructions.add_theme_font_size_override("font_size", 16)
 	layer.add_child(instructions)
 

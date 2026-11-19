@@ -145,12 +145,14 @@ func _build_ui() -> void:
 	timer_label.position = Vector2(24, 86)
 	layer.add_child(timer_label)
 	dialogue_label = Label.new()
-	dialogue_label.position = Vector2(24, 570)
+	dialogue_label.position = Vector2(24, 350) if OS.has_feature("mobile") else Vector2(24, 570)
+	dialogue_label.size = Vector2(720, 110)
+	dialogue_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	dialogue_label.add_theme_font_size_override("font_size", 20)
 	layer.add_child(dialogue_label)
 	var controls := Label.new()
 	controls.position = Vector2(24, 675)
-	controls.text = "WASD move  ·  Mouse look  ·  Shift run  ·  Space / left click attack  ·  C dodge  ·  E interact  ·  Esc cursor  ·  P menu"
+	controls.text = "" if OS.has_feature("mobile") else "WASD move  ·  Mouse look  ·  Shift run  ·  Space / left click attack  ·  C dodge  ·  E interact  ·  Esc cursor  ·  P menu"
 	layer.add_child(controls)
 
 func _set_stage(value: String) -> void:

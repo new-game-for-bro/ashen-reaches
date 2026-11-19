@@ -3,6 +3,7 @@ extends CharacterBody3D
 signal health_changed(value: int)
 signal defeated
 
+const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 const InputSetup = preload("res://scripts/player/input_setup.gd")
 
 const MOVE_SPEED: float = 5.0
@@ -16,6 +17,9 @@ const ATTACK_COOLDOWN: float = 0.55
 @onready var visual: Node3D = $Visual
 @onready var pivot: Node3D = $CameraPivot
 @onready var animation: AnimationPlayer = $Visual/AnimationPlayer
+var touch_controls: CanvasLayer
+var mobile_jump: bool = false
+var mobile_dodge: bool = false
 var dodge_time: float = 0.0
 var attack_time: float = 0.0
 var dodge_direction: Vector3 = Vector3.ZERO
@@ -27,7 +31,10 @@ var placeholder_blade: MeshInstance3D
 func _ready() -> void:
 	InputSetup.configure()
 	_add_placeholder()
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if OS.has_feature("mobile"):
+		_enable_touch_controls()
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -49,16 +56,19 @@ func _physics_process(delta: float) -> void:
 	attack_time = maxf(0.0, attack_time - delta)
 	dodge_time = maxf(0.0, dodge_time - delta)
 	var move_input := Vector2(Input.get_action_strength("move_right") - Input.get_action_strength("move_left"), Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")).normalized()
+	if touch_controls and touch_controls.move_vector.length() > 0.0:
+		move_input = touch_controls.move_vector
 	var direction := (Basis(Vector3.UP, pivot.rotation.y) * Vector3(move_input.x, 0, move_input.y)).normalized()
-	if Input.is_action_just_pressed("dodge") and dodge_time <= 0.0 and is_on_floor() and direction.length() > 0.1:
+	if (Input.is_action_just_pressed("dodge") or mobile_dodge) and dodge_time <= 0.0 and is_on_floor() and direction.length() > 0.1:
 		dodge_direction = direction
 		dodge_time = DODGE_DURATION
+	mobile_dodge = false
 	if dodge_time > 0.0:
 		velocity.x = dodge_direction.x * DODGE_SPEED
 		velocity.z = dodge_direction.z * DODGE_SPEED
 		_play_animation("dodge")
 	else:
-		var running := Input.is_action_pressed("sprint")
+		var running: bool = Input.is_action_pressed("sprint") or (touch_controls != null and touch_controls.sprinting)
 		var speed := RUN_SPEED if running else MOVE_SPEED
 		velocity.x = direction.x * speed
 		velocity.z = direction.z * speed
@@ -69,10 +79,11 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 		_play_animation("fall" if velocity.y < 0.0 else "jump")
-	elif Input.is_action_just_pressed("jump"):
+	elif Input.is_action_just_pressed("jump") or mobile_jump:
 		velocity.y = JUMP_SPEED
 	else:
 		velocity.y = 0.0
+	mobile_jump = false
 	if is_instance_valid(target):
 		if global_position.distance_to(target.global_position) > 20.0:
 			target = null
@@ -152,3 +163,29 @@ func hit(amount: int) -> void:
 		set_physics_process(false)
 		set_process_unhandled_input(false)
 		defeated.emit()
+
+
+func _enable_touch_controls() -> void:
+	if touch_controls:
+		return
+	touch_controls = TouchControls.new()
+	touch_controls.mode = "solo"
+	add_child(touch_controls)
+	touch_controls.action_pressed.connect(_on_touch_action)
+	touch_controls.look_dragged.connect(_on_touch_look)
+
+func _on_touch_action(action: String) -> void:
+	match action:
+		"Attack": attack(false)
+		"Heavy": attack(true)
+		"Jump": mobile_jump = true
+		"Dodge": mobile_dodge = true
+		"Lock": _lock_target()
+		"Retry":
+			if get_parent().name == "BattleRoyale" and get_parent().match_finished:
+				get_tree().reload_current_scene()
+		"Menu": get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")
+
+func _on_touch_look(relative: Vector2) -> void:
+	pivot.rotation.y -= relative.x * 0.003
+	pivot.rotation.x = clampf(pivot.rotation.x - relative.y * 0.003, -0.8, 0.55)

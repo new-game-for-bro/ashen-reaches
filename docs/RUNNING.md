@@ -1,8 +1,14 @@
 # Running the project
 
-The intended target is mobile. The current builds are desktop prototypes using keyboard and mouse; touch controls, mobile UI, performance tuning and Android/iOS exports have not been implemented or tested yet.
+The intended target is mobile. The Android prototype uses landscape touch controls; desktop keyboard and mouse controls remain available. Android device testing, mobile performance tuning and iOS export are still outstanding.
 
 Open `project.godot` in Godot 4.3 or newer and press F5. The startup menu offers Story prologue, Solo arena, Battle Royale, Host, Join, Disconnect and Quit.
+
+## Android prototype
+
+On an Android device, use the left joystick to move and drag an unused area on the right to orbit the camera. The action buttons vary by mode. Sprint is a toggle. In Battle Royale, Retry starts a new match after it ends; Menu returns to the mode selector. The online test has jump, sprint, chat and menu controls, but no networked combat yet.
+
+The Android export preset builds a debug APK with a development signing key. Install the official Godot export templates matching your Godot version, an Android SDK with platform-tools and build-tools, and a compatible JDK; configure their paths and a debug keystore in Godot Editor Settings, then use Project > Export > Android > Export Project. The debug APK is not a release build. A phone has not yet been used to verify layout, performance, networking, installation or input. The preset exports only selected scenes and scripts, plus the story JSON, so unrelated local models are not packaged.
 
 ## Story prologue
 
@@ -53,3 +59,5 @@ The first pair tests the roster and chat on UDP 18991; the second tests spawning
 The older first-person prototype remains available as `world.tscn`.
 
 Run `godot --headless --path . --script res://tests/royale_smoke.gd` to test the battle royale rules.
+
+Run `godot --headless --path . --script res://tests/mobile_controls_smoke.gd` to exercise the touch control signals and story, battle royale and network action wiring without a phone.

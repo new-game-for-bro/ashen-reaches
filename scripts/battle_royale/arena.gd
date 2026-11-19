@@ -63,7 +63,7 @@ func _finish(message: String) -> void:
 	if match_finished:
 		return
 	match_finished = true
-	result.text = message + "\nR: play again   ·   P: return to menu"
+	result.text = message + ("\nTap Retry or Menu" if OS.has_feature("mobile") else "\nR: play again   ·   P: return to menu")
 	for contestant: Node in get_tree().get_nodes_in_group("royale_contestants"):
 		contestant.set_physics_process(false)
 
@@ -124,7 +124,7 @@ func _build_ui() -> void:
 	layer.add_child(health_label)
 	var hint := Label.new()
 	hint.position = Vector2(20, 80)
-	hint.text = "WASD move  ·  Shift run  ·  Space jump  ·  C dodge  ·  Left / right click attack  ·  Q lock  ·  P menu"
+	hint.text = "" if OS.has_feature("mobile") else "WASD move  ·  Shift run  ·  Space jump  ·  C dodge  ·  Left / right click attack  ·  Q lock  ·  P menu"
 	layer.add_child(hint)
 	result = Label.new()
 	result.position = Vector2(350, 300)

@@ -1,7 +1,9 @@
 extends CharacterBody3D
+const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 signal interact_requested
 signal attack_requested
 signal dodge_requested
+var touch_controls: CanvasLayer
 var camera_pivot: Node3D
 var avatar: Node3D
 var sword: Node3D
@@ -49,7 +51,10 @@ func _ready() -> void:
 	var camera := Camera3D.new()
 	camera.current = true
 	arm.add_child(camera)
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	if OS.has_feature("mobile"):
+		_enable_touch_controls()
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -87,8 +92,10 @@ func _physics_process(delta: float) -> void:
 	var axis := Vector2.ZERO
 	if control_enabled:
 		axis = Vector2(float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A)), float(Input.is_key_pressed(KEY_S)) - float(Input.is_key_pressed(KEY_W))).normalized()
+	if touch_controls and touch_controls.move_vector.length() > 0.0:
+		axis = touch_controls.move_vector
 	var direction := Basis(Vector3.UP, camera_pivot.rotation.y) * Vector3(axis.x, 0, axis.y)
-	var speed := 7.5 if Input.is_key_pressed(KEY_SHIFT) else 5.0
+	var speed := 7.5 if Input.is_key_pressed(KEY_SHIFT) or (touch_controls != null and touch_controls.sprinting) else 5.0
 	dodge_time = maxf(0.0, dodge_time - delta)
 	if dodge_time > 0.0:
 		direction = dodge_direction
@@ -99,3 +106,28 @@ func _physics_process(delta: float) -> void:
 	if direction.length() > 0.1:
 		avatar.rotation.y = lerp_angle(avatar.rotation.y, atan2(direction.x, direction.z), minf(1.0, delta * 12.0))
 	move_and_slide()
+
+
+func _enable_touch_controls() -> void:
+	if touch_controls:
+		return
+	touch_controls = TouchControls.new()
+	touch_controls.mode = "story"
+	add_child(touch_controls)
+	touch_controls.action_pressed.connect(_on_touch_action)
+	touch_controls.look_dragged.connect(_on_touch_look)
+
+func _on_touch_action(action: String) -> void:
+	match action:
+		"Attack": attack()
+		"Interact": interact_requested.emit()
+		"Dodge":
+			if dodge_time <= 0.0:
+				dodge_direction = -avatar.global_basis.z
+				dodge_time = 0.25
+				dodge_requested.emit()
+		"Menu": get_tree().change_scene_to_file("res://scenes/ui/network_lobby.tscn")
+
+func _on_touch_look(relative: Vector2) -> void:
+	camera_pivot.rotation.y -= relative.x * 0.003
+	camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - relative.y * 0.003, -0.8, 0.55)
