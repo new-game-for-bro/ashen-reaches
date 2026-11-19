@@ -1,9 +1,14 @@
 extends Node3D
 
 const PlayerScript = preload("res://player.gd")
+const MonsterScript = preload("res://monster.gd")
 const MapScript = preload("res://world_map.gd")
 var player: CharacterBody3D
 var map_panel: Control
+var hud: Label
+var message: Label
+var kills := 0
+var seals := {}
 var markers := [
 	{"name":"Haven", "pos":Vector3(0, 0, 0), "color":Color("d7c79e")},
 	{"name":"Blackwood", "pos":Vector3(-35, 0, -30), "color":Color("79916d")},
@@ -32,6 +37,8 @@ func _ready() -> void:
 	player.set_script(PlayerScript)
 	add_child(player)
 	player.position = Vector3(0, 1, 8)
+	for monster in get_tree().get_nodes_in_group("monsters"):
+		monster.player = player
 	var layer := CanvasLayer.new()
 	add_child(layer)
 	map_panel = Control.new()
@@ -41,14 +48,24 @@ func _ready() -> void:
 	map_panel.set("player", player)
 	map_panel.visible = false
 	var hint := Label.new()
-	hint.text = "ASHEN REACHES   |   WASD move  ·  Mouse look  ·  Shift run  ·  M map  ·  Esc cursor"
+	hint.text = "ASHEN REACHES   |   WASD move · mouse look · Shift run · Space attack · E shrine · M map · Esc cursor"
 	hint.position = Vector2(20, 18)
 	hint.add_theme_font_size_override("font_size", 15)
 	layer.add_child(hint)
+	hud = Label.new()
+	hud.position = Vector2(20, 50)
+	hud.add_theme_font_size_override("font_size", 20)
+	layer.add_child(hud)
+	message = Label.new()
+	message.position = Vector2(20, 80)
+	message.add_theme_font_size_override("font_size", 17)
+	message.text = "Defeat the hollows, then cleanse the three dungeon seals."
+	layer.add_child(message)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_M:
 		map_panel.visible = not map_panel.visible
+		player.map_open = map_panel.visible
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if map_panel.visible else Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()
 
@@ -137,7 +154,8 @@ func _build_dungeon(pos: Vector3, title: String) -> void:
 
 func _spawn_monster(pos: Vector3) -> void:
 	var monster := Node3D.new()
-	monster.name = "MonsterPlaceholder"
+	monster.name = "WanderingHollow"
+	monster.set_script(MonsterScript)
 	monster.position = pos
 	add_child(monster)
 	var body := MeshInstance3D.new()
@@ -237,3 +255,31 @@ func _build_scenery() -> void:
 		light.light_energy = 0.7
 		light.omni_range = 8
 		add_child(light)
+
+
+func _process(_delta: float) -> void:
+	if is_instance_valid(player) and is_instance_valid(hud):
+		hud.text = "HEALTH %d / 100    HOLLOW KILLS %d    SEALS %d / 3" % [player.health, kills, seals.size()]
+
+func monster_defeated() -> void:
+	kills += 1
+	message.text = "Hollow defeated. Find the three marked dungeon seals."
+
+func interact() -> void:
+	var locations := {"HOLLOW CRYPT": Vector3(-48, 0, -48), "EMBER VAULT": Vector3(48, 0, -45), "CROWN OF BONES": Vector3(47, 0, 46)}
+	for title in locations:
+		var flat := player.global_position
+		flat.y = 0
+		if flat.distance_to(locations[title]) < 6.0:
+			if seals.has(title):
+				message.text = title + " is already cleansed."
+			elif kills < 1:
+				message.text = "Defeat a wandering hollow before cleansing a seal."
+			else:
+				seals[title] = true
+				player.health = mini(100, player.health + 25)
+				message.text = title + " cleansed! Health restored."
+				if seals.size() == 3:
+					message.text = "VICTORY — all three seals are cleansed!"
+			return
+	message.text = "No seal nearby. Follow the roads to a dungeon entrance."
