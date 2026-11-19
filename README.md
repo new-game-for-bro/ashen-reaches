@@ -14,4 +14,8 @@ This is a prototype using generated placeholder geometry. The dungeon gateways a
 
 ## Art and animation
 
-Sketchfab and Mixamo are planned sources for models and character animations. No third-party assets are included yet. Check each model's license and attribution, and verify the character rig and animation compatibility before importing. For example, [Maw of the Void by Yury Misiyuk](https://sketchfab.com/3d-models/maw-of-the-void-free-creature-asset-402848d2da654330bc9c3f23ec06cf8d) is a possible CC Attribution creature, but has not been imported or validated for this project.
+Sketchfab and Mixamo are planned sources for models and character animations. The Maw of the Void model is included as the hollow monster. Check each model's license and attribution, and verify the character rig and animation compatibility before importing. For example, [Maw of the Void by Yury Misiyuk](https://sketchfab.com/3d-models/maw-of-the-void-free-creature-asset-402848d2da654330bc9c3f23ec06cf8d) is a possible CC Attribution creature, but has not been imported or validated for this project.
+
+## Asset credit
+
+"Maw of the Void - Free Creature Asset" by Yury Misiyuk, https://skfb.ly/pINRD, is licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/. The original GLB is included; its displayed size was adjusted in the game.

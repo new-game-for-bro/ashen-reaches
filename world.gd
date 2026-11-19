@@ -1,6 +1,7 @@
 extends Node3D
 
 const PlayerScript = preload("res://player.gd")
+const MawScene = preload("res://maw_of_the_void_-_free_creature_asset.glb")
 const MonsterScript = preload("res://monster.gd")
 const MapScript = preload("res://world_map.gd")
 var player: CharacterBody3D
@@ -158,14 +159,17 @@ func _spawn_monster(pos: Vector3) -> void:
 	monster.set_script(MonsterScript)
 	monster.position = pos
 	add_child(monster)
-	var body := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.6
-	capsule.height = 2.2
-	body.mesh = capsule
+	var body := Node3D.new()
+	body.name = "Visual"
 	body.position.y = 1.1
-	body.material_override = _mat(Color("6b3631"))
 	monster.add_child(body)
+	var model := MawScene.instantiate() as Node3D
+	model.scale = Vector3.ONE * 2.4
+	model.position.y = -0.4
+	body.add_child(model)
+	var animation := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+	if animation and not animation.get_animation_list().is_empty():
+		animation.play(animation.get_animation_list()[0])
 	var label := Label3D.new()
 	label.text = "WANDERING HOLLOW"
 	label.position.y = 2.7
