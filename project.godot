@@ -1,0 +1,11 @@
+; Ashen Reaches — Godot 4 starter project
+config_version=5
+[application]
+config/name="Ashen Reaches"
+run/main_scene="res://world.tscn"
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+[rendering]
+renderer/rendering_method="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.08, 0.09, 0.1, 1)
