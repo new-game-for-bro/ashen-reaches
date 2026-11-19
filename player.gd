@@ -5,6 +5,8 @@ var pitch := 0.0
 var health := 100
 var map_open := false
 var attack_timer := 0.0
+var sword: Node3D
+var swing_time := 0.0
 
 func _ready() -> void:
 	var collision := CollisionShape3D.new()
@@ -17,6 +19,7 @@ func _ready() -> void:
 	camera.position.y = 0.65
 	camera.current = true
 	add_child(camera)
+	_build_sword()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -36,6 +39,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	attack_timer = maxf(0.0, attack_timer - delta)
+	swing_time = maxf(0.0, swing_time - delta)
+	if sword:
+		var swing := sin((1.0 - swing_time / 0.3) * PI) if swing_time > 0.0 else 0.0
+		sword.rotation.z = -0.2 - swing * 1.1
+		sword.position.y = -0.42 + swing * 0.15
 	var input := Vector2.ZERO
 	if map_open:
 		velocity.x = 0
@@ -59,6 +67,7 @@ func attack() -> void:
 	if attack_timer > 0:
 		return
 	attack_timer = 0.5
+	swing_time = 0.3
 	var best: Node3D = null
 	var best_distance := 3.5
 	for enemy in get_tree().get_nodes_in_group("monsters"):
@@ -83,3 +92,36 @@ func take_damage(amount: int) -> void:
 		get_parent().message.text = "You fell and awoke at the haven."
 	else:
 		get_parent().message.text = "A hollow strikes you!"
+
+
+func _build_sword() -> void:
+	sword = Node3D.new()
+	sword.position = Vector3(0.43, -0.42, -0.8)
+	sword.rotation.z = -0.2
+	camera.add_child(sword)
+	var blade := MeshInstance3D.new()
+	var blade_mesh := BoxMesh.new()
+	blade_mesh.size = Vector3(0.08, 0.75, 0.025)
+	blade.mesh = blade_mesh
+	blade.position.y = 0.45
+	var steel := StandardMaterial3D.new()
+	steel.albedo_color = Color("a9adb1")
+	steel.metallic = 0.6
+	blade.material_override = steel
+	sword.add_child(blade)
+	var guard := MeshInstance3D.new()
+	var guard_mesh := BoxMesh.new()
+	guard_mesh.size = Vector3(0.25, 0.045, 0.07)
+	guard.mesh = guard_mesh
+	guard.position.y = 0.06
+	var iron := StandardMaterial3D.new()
+	iron.albedo_color = Color("665544")
+	guard.material_override = iron
+	sword.add_child(guard)
+	var grip := MeshInstance3D.new()
+	var grip_mesh := BoxMesh.new()
+	grip_mesh.size = Vector3(0.055, 0.23, 0.055)
+	grip.mesh = grip_mesh
+	grip.position.y = -0.07
+	grip.material_override = iron
+	sword.add_child(grip)

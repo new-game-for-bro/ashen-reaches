@@ -11,13 +11,17 @@ func _ready() -> void:
 	add_to_group("monsters")
 
 func _process(delta: float) -> void:
-	if not is_instance_valid(player):
+	if not is_instance_valid(player) or player.map_open:
 		return
 	attack_timer = maxf(0.0, attack_timer - delta)
 	phase += delta * 3.0
 	var toward := player.global_position - global_position
 	toward.y = 0
 	var distance := toward.length()
+	if distance > 0.01 and distance < 16.0:
+		var visual := get_node_or_null("Visual") as Node3D
+		if visual:
+			visual.rotation.y = atan2(toward.x, toward.z)
 	if distance < 16 and distance > 1.6:
 		global_position += toward.normalized() * 2.4 * delta
 	elif distance <= 1.6 and attack_timer <= 0:
@@ -29,6 +33,8 @@ func _process(delta: float) -> void:
 		get_child(0).position.y = 1.1 + sin(phase) * 0.1
 
 func hit() -> void:
+	if is_queued_for_deletion():
+		return
 	health -= 1
 	if health <= 0:
 		get_parent().monster_defeated()

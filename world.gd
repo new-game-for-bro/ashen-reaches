@@ -7,6 +7,8 @@ const MapScript = preload("res://world_map.gd")
 var player: CharacterBody3D
 var map_panel: Control
 var hud: Label
+var objective: Label
+var health_bar: ProgressBar
 var message: Label
 var kills := 0
 var seals := {}
@@ -57,6 +59,21 @@ func _ready() -> void:
 	hud.position = Vector2(20, 50)
 	hud.add_theme_font_size_override("font_size", 20)
 	layer.add_child(hud)
+	health_bar = ProgressBar.new()
+	health_bar.position = Vector2(20, 115)
+	health_bar.size = Vector2(240, 16)
+	health_bar.show_percentage = false
+	layer.add_child(health_bar)
+	objective = Label.new()
+	objective.position = Vector2(20, 145)
+	objective.add_theme_font_size_override("font_size", 16)
+	layer.add_child(objective)
+	var crosshair := Label.new()
+	crosshair.text = "+"
+	crosshair.set_anchors_preset(Control.PRESET_CENTER)
+	crosshair.position = Vector2(-5, -12)
+	crosshair.add_theme_font_size_override("font_size", 22)
+	layer.add_child(crosshair)
 	message = Label.new()
 	message.position = Vector2(20, 80)
 	message.add_theme_font_size_override("font_size", 17)
@@ -264,6 +281,13 @@ func _build_scenery() -> void:
 func _process(_delta: float) -> void:
 	if is_instance_valid(player) and is_instance_valid(hud):
 		hud.text = "HEALTH %d / 100    HOLLOW KILLS %d    SEALS %d / 3" % [player.health, kills, seals.size()]
+		health_bar.value = player.health
+		if kills == 0:
+			objective.text = "OBJECTIVE: Defeat a hollow. Follow a road beyond the haven."
+		elif seals.size() < 3:
+			objective.text = "OBJECTIVE: Cleanse the dungeon seals (%d / 3). Press M for the map." % seals.size()
+		else:
+			objective.text = "OBJECTIVE COMPLETE: The three seals are cleansed."
 
 func monster_defeated() -> void:
 	kills += 1

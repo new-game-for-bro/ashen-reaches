@@ -5,10 +5,10 @@ A playable first-person dark-fantasy prototype for Godot 4. Open `project.godot`
 ## How to play
 
 - **WASD** move, **mouse** look, **Shift** run.
-- **Space** strikes a nearby hollow in front of you. Hollows pursue and attack when close.
+- **Space** swings your sword at a nearby hollow in front of you. Hollows pursue and attack when close.
 - Defeat at least one hollow, then approach each of the three dungeon gateways and press **E** to cleanse its seal. Cleansing restores some health; cleanse all three to win.
 - If your health reaches zero you return to the haven. Progress remains for the current run.
-- **M** opens the world map. **Esc** releases the cursor; click the world to recapture it.
+- **M** opens the world map and pauses monster movement. **Esc** releases the cursor; click the world to recapture it.
 
 This is a prototype using generated placeholder geometry. The dungeon gateways are interactive seals rather than explorable interiors; there is no save system or sound yet.
 
