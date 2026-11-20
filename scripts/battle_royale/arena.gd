@@ -99,8 +99,15 @@ func _build_ring() -> void:
 
 func _build_environment() -> void:
 	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("202830")
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color("315b91")
+	sky_material.sky_horizon_color = Color("e4aa83")
+	sky_material.ground_bottom_color = Color("39493f")
+	sky_material.ground_horizon_color = Color("aaa78e")
+	sky.sky_material = sky_material
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("a4adb5")
 	environment.ambient_light_energy = 0.75
