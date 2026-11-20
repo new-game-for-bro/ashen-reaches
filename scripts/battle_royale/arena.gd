@@ -18,6 +18,8 @@ var match_finished: bool = false
 var ring: MeshInstance3D
 var status: Label
 var health_label: Label
+var ammo_label: Label
+var crosshair: Label
 var result: Label
 
 func _ready() -> void:
@@ -28,6 +30,8 @@ func _ready() -> void:
 	player.add_to_group("royale_contestants")
 	player.defeated.connect(_on_player_defeated)
 	player.health_changed.connect(_on_health_changed)
+	player.ammo_changed.connect(_on_ammo_changed)
+	player.shot_feedback.connect(_on_shot_feedback)
 	for i in range(BOT_COUNT):
 		var angle := TAU * float(i) / float(BOT_COUNT)
 		var bot := CharacterBody3D.new()
@@ -62,6 +66,15 @@ func _on_player_defeated() -> void:
 
 func _on_health_changed(value: int) -> void:
 	health_label.text = "HEALTH %d / 100" % value
+
+func _on_ammo_changed(magazine: int, reserve: int, reloading: bool) -> void:
+	ammo_label.text = "RELOADING..." if reloading else "AMMO %d / %d" % [magazine, reserve]
+
+func _on_shot_feedback(hit_target: bool) -> void:
+	crosshair.modulate = Color("ff6f59") if hit_target else Color.WHITE
+	if hit_target:
+		var tween := create_tween()
+		tween.tween_property(crosshair, "modulate", Color.WHITE, 0.25)
 
 func _finish(message: String) -> void:
 	if match_finished:
@@ -133,9 +146,19 @@ func _build_ui() -> void:
 	health_label.position = Vector2(20, 50)
 	health_label.text = "HEALTH 100 / 100"
 	layer.add_child(health_label)
+	ammo_label = Label.new()
+	ammo_label.position = Vector2(20, 75)
+	ammo_label.text = "AMMO 30 / 120"
+	layer.add_child(ammo_label)
+	crosshair = Label.new()
+	crosshair.text = "+"
+	crosshair.add_theme_font_size_override("font_size", 30)
+	crosshair.set_anchors_preset(Control.PRESET_CENTER)
+	crosshair.position = Vector2(-8, -20)
+	layer.add_child(crosshair)
 	var hint := Label.new()
-	hint.position = Vector2(20, 80)
-	hint.text = "" if OS.has_feature("mobile") else "WASD move  ·  Shift run  ·  Space jump  ·  C dodge  ·  Left / right click attack  ·  Q lock  ·  P menu"
+	hint.position = Vector2(20, 105)
+	hint.text = "" if OS.has_feature("mobile") else "WASD move  ·  Shift run  ·  Space jump  ·  C dodge  ·  Hold left click fire  ·  R reload  ·  Q lock  ·  P menu"
 	layer.add_child(hint)
 	result = Label.new()
 	result.position = Vector2(350, 300)

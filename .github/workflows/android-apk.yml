@@ -42,6 +42,7 @@ jobs:
           timeout 120 "$GODOT" --headless --path . --script res://tests/model_probe.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/story_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/royale_smoke.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/royale_shooter_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_controls_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_layout_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/net_intents_test.gd

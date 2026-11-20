@@ -6,6 +6,8 @@ const WorldModels = preload("res://scripts/world/model_environment.gd")
 
 signal health_changed(value: int)
 signal defeated
+signal ammo_changed(magazine: int, reserve: int, reloading: bool)
+signal shot_feedback(hit_target: bool)
 
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 const InputSetup = preload("res://scripts/player/input_setup.gd")
@@ -17,6 +19,11 @@ const GRAVITY: float = 18.0
 const DODGE_SPEED: float = 12.0
 const DODGE_DURATION: float = 0.28
 const ATTACK_COOLDOWN: float = 0.55
+const RIFLE_DAMAGE := 20
+const RIFLE_RANGE := 100.0
+const RIFLE_INTERVAL := 0.15
+const MAGAZINE_SIZE := 30
+const RELOAD_DURATION := 1.5
 
 @onready var visual: Node3D = $Visual
 @onready var pivot: Node3D = $CameraPivot
@@ -31,8 +38,14 @@ var health: int = 100
 var alive: bool = true
 var target: Node3D
 var placeholder_blade: MeshInstance3D
+var rifle_mode := false
+var fire_held := false
+var ammunition := MAGAZINE_SIZE
+var reserve_ammunition := 120
+var reload_remaining := 0.0
 
 func _ready() -> void:
+	rifle_mode = get_parent().name == "BattleRoyale"
 	WorldModels.ground_after_physics(self)
 	InputSetup.configure()
 	_add_placeholder()
@@ -47,6 +60,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		pivot.rotation.x = clampf(pivot.rotation.x - event.relative.y * 0.003, -0.8, 0.55)
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if rifle_mode and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+			fire_held = event.pressed
+		elif event.pressed:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		return
+	if rifle_mode and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_R:
+		reload_rifle()
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -59,6 +81,16 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	attack_time = maxf(0.0, attack_time - delta)
+	if rifle_mode and alive:
+		if reload_remaining > 0.0:
+			reload_remaining = maxf(0.0, reload_remaining - delta)
+			if reload_remaining == 0.0:
+				var needed := mini(MAGAZINE_SIZE - ammunition, reserve_ammunition)
+				ammunition += needed
+				reserve_ammunition -= needed
+				ammo_changed.emit(ammunition, reserve_ammunition, false)
+		if fire_held:
+			fire_rifle()
 	dodge_time = maxf(0.0, dodge_time - delta)
 	var move_input := Vector2(Input.get_action_strength("move_right") - Input.get_action_strength("move_left"), Input.get_action_strength("move_back") - Input.get_action_strength("move_forward")).normalized()
 	if touch_controls and touch_controls.move_vector.length() > 0.0:
@@ -96,6 +128,44 @@ func _physics_process(delta: float) -> void:
 			var offset := target.global_position - global_position
 			visual.rotation.y = atan2(offset.x, offset.z)
 	move_and_slide()
+
+func reload_rifle() -> void:
+	if not alive or reload_remaining > 0.0 or ammunition >= MAGAZINE_SIZE or reserve_ammunition <= 0:
+		return
+	reload_remaining = RELOAD_DURATION
+	ammo_changed.emit(ammunition, reserve_ammunition, true)
+
+func fire_rifle() -> void:
+	if not alive or not rifle_mode or attack_time > 0.0 or reload_remaining > 0.0:
+		return
+	if ammunition <= 0:
+		reload_rifle()
+		return
+	ammunition -= 1
+	attack_time = RIFLE_INTERVAL
+	ammo_changed.emit(ammunition, reserve_ammunition, false)
+	CharacterCatalog.play(animation, "fire")
+	var camera := $CameraPivot/SpringArm3D/Camera3D as Camera3D
+	var viewport_center := get_viewport().get_visible_rect().size / 2.0
+	var ray_origin := camera.project_ray_origin(viewport_center)
+	var ray_end := ray_origin + camera.project_ray_normal(viewport_center) * RIFLE_RANGE
+	var space := get_world_3d().direct_space_state
+	var camera_query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	camera_query.exclude = [get_rid()]
+	var aim_hit := space.intersect_ray(camera_query)
+	var aim_point: Vector3 = aim_hit.position if not aim_hit.is_empty() else ray_end
+	# The second ray prevents shooting through cover between the player and camera aim.
+	var muzzle := global_position + Vector3.UP * 1.4
+	var shot_query := PhysicsRayQueryParameters3D.create(muzzle, aim_point + (aim_point - muzzle).normalized() * 0.1)
+	shot_query.exclude = [get_rid()]
+	var shot := space.intersect_ray(shot_query)
+	var did_hit := false
+	if not shot.is_empty():
+		var collider: Object = shot.collider
+		if collider is Node and collider.is_in_group("training_targets") and collider.has_method("hit"):
+			collider.hit(RIFLE_DAMAGE)
+			did_hit = true
+	shot_feedback.emit(did_hit)
 
 func attack(heavy: bool) -> void:
 	if not alive:
@@ -169,6 +239,7 @@ func hit(amount: int) -> void:
 	health_changed.emit(health)
 	if health == 0:
 		alive = false
+		fire_held = false
 		remove_from_group("royale_contestants")
 		velocity = Vector3.ZERO
 		set_physics_process(false)
@@ -180,14 +251,20 @@ func _enable_touch_controls() -> void:
 	if touch_controls:
 		return
 	touch_controls = TouchControls.new()
-	touch_controls.mode = "solo"
+	touch_controls.mode = "royale" if rifle_mode else "solo"
 	add_child(touch_controls)
 	touch_controls.action_pressed.connect(_on_touch_action)
 	touch_controls.look_dragged.connect(_on_touch_look)
+	touch_controls.fire_state_changed.connect(_on_fire_state)
+
+func _on_fire_state(pressed: bool) -> void:
+	if rifle_mode:
+		fire_held = pressed
 
 func _on_touch_action(action: String) -> void:
 	match action:
 		"Attack": attack(false)
+		"Reload": reload_rifle()
 		"Heavy": attack(true)
 		"Jump": mobile_jump = true
 		"Dodge": mobile_dodge = true

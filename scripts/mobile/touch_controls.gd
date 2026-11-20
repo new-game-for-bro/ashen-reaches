@@ -1,6 +1,7 @@
 extends CanvasLayer
 signal action_pressed(action: String)
 signal look_dragged(relative: Vector2)
+signal fire_state_changed(pressed: bool)
 const Joystick = preload("res://scripts/mobile/joystick.gd")
 const CONFIG_PATH = "user://touch_layout.cfg"
 const REFERENCE_SIZE = Vector2(1280, 720)
@@ -61,21 +62,27 @@ func _make_button(action: String, dimensions: Vector2) -> void:
 	var pressed_style := style.duplicate()
 	pressed_style.bg_color = Color(0.42, 0.32, 0.22, 0.9)
 	button.add_theme_stylebox_override("pressed", pressed_style)
-	button.pressed.connect(_on_action.bind(action))
+	if action == "Fire":
+		button.button_down.connect(_fire_down)
+		button.button_up.connect(_fire_up)
+	else:
+		button.pressed.connect(_on_action.bind(action))
 	add_child(button)
 	buttons[action] = button
 	base_sizes[action] = dimensions
 
 func _build_standard_buttons() -> void:
-	var actions: Array = ["Jump", "Sprint", "Chat", "Menu"] if mode == "network" else ["Attack", "Heavy", "Dodge", "Jump", "Lock", "Sprint", "Retry", "Menu"]
+	var actions: Array = ["Jump", "Sprint", "Chat", "Menu"] if mode == "network" else ["Fire", "Reload", "Dodge", "Jump", "Sprint", "Retry", "Menu"] if mode == "royale" else ["Attack", "Heavy", "Dodge", "Jump", "Lock", "Sprint", "Retry", "Menu"]
 	for action: String in actions:
-		_make_button(action, Vector2(125, 105) if action == "Attack" else Vector2(90, 65))
+		_make_button(action, Vector2(125, 105) if action in ["Attack", "Fire"] else Vector2(90, 65))
 
 func _defaults() -> Dictionary:
 	if mode == "story":
 		return {"Move": Vector2(0.087, 0.84), "Exit": Vector2(0.055, 0.064), "Pause": Vector2(0.945, 0.064), "Interact": Vector2(0.925, 0.59), "Attack": Vector2(0.935, 0.73), "Dodge": Vector2(0.835, 0.88)}
 	if mode == "network":
 		return {"Move": Vector2(0.087, 0.84), "Jump": Vector2(0.92, 0.80), "Sprint": Vector2(0.80, 0.88), "Chat": Vector2(0.82, 0.70), "Menu": Vector2(0.94, 0.06)}
+	if mode == "royale":
+		return {"Move": Vector2(0.087, 0.84), "Fire": Vector2(0.93, 0.76), "Reload": Vector2(0.80, 0.68), "Dodge": Vector2(0.83, 0.88), "Jump": Vector2(0.92, 0.58), "Sprint": Vector2(0.25, 0.88), "Retry": Vector2(0.82, 0.06), "Menu": Vector2(0.94, 0.06)}
 	return {"Move": Vector2(0.087, 0.84), "Attack": Vector2(0.93, 0.76), "Heavy": Vector2(0.82, 0.67), "Dodge": Vector2(0.83, 0.88), "Jump": Vector2(0.92, 0.58), "Lock": Vector2(0.73, 0.76), "Sprint": Vector2(0.25, 0.88), "Retry": Vector2(0.82, 0.06), "Menu": Vector2(0.94, 0.06)}
 
 func _build_editor() -> void:
@@ -213,11 +220,19 @@ func set_exit_attention(enabled: bool) -> void:
 
 func reset_input() -> void:
 	move_vector = Vector2.ZERO
+	fire_state_changed.emit(false)
 	look_finger = -1
 	joystick.reset()
 
 func _on_move(value: Vector2) -> void:
 	move_vector = value
+
+func _fire_down() -> void:
+	if not edit_mode:
+		fire_state_changed.emit(true)
+
+func _fire_up() -> void:
+	fire_state_changed.emit(false)
 
 func _on_action(action: String) -> void:
 	if edit_mode:

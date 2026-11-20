@@ -4,7 +4,7 @@ const WorldModels = preload("res://scripts/world/model_environment.gd")
 
 signal eliminated(bot: Node)
 const SPEED: float = 3.4
-const DAMAGE: int = 12
+const DAMAGE: int = 8
 const ATTACK_INTERVAL: float = 1.2
 var health: int = 60
 var cooldown: float = 0.0
@@ -59,14 +59,20 @@ func _physics_process(delta: float) -> void:
 	if nearest:
 		var direction := nearest.global_position - global_position
 		direction.y = 0
-		if direction.length() > 1.8:
+		if direction.length() > 16.0:
 			velocity.x = direction.normalized().x * SPEED
 			velocity.z = direction.normalized().z * SPEED
 		else:
 			velocity.x = 0.0
 			velocity.z = 0.0
 			if cooldown <= 0.0:
-				nearest.hit(DAMAGE)
+				var from := global_position + Vector3.UP * 1.35
+				var destination := nearest.global_position + Vector3.UP * 1.0
+				var query := PhysicsRayQueryParameters3D.create(from, destination)
+				query.exclude = [get_rid()]
+				var hit_result := get_world_3d().direct_space_state.intersect_ray(query)
+				if not hit_result.is_empty() and hit_result.collider == nearest:
+					nearest.hit(DAMAGE)
 				cooldown = ATTACK_INTERVAL
 	velocity.y = velocity.y - 18.0 * delta if not is_on_floor() else 0.0
 	move_and_slide()

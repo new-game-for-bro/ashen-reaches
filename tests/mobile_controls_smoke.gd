@@ -89,7 +89,11 @@ func run_test() -> void:
 	arena.player._enable_touch_controls()
 	await process_frame
 	var pad = arena.player.touch_controls
-	assert(pad.buttons.has("Jump") and pad.buttons.has("Retry"))
+	assert(pad.buttons.has("Jump") and pad.buttons.has("Retry") and pad.buttons.has("Fire") and pad.buttons.has("Reload"))
+	pad._fire_down()
+	assert(arena.player.fire_held)
+	pad._fire_up()
+	assert(not arena.player.fire_held)
 	pad._on_action("Jump")
 	assert(arena.player.mobile_jump)
 	pad._on_action("Dodge")

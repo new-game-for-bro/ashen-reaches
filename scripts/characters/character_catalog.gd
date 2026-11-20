@@ -4,6 +4,7 @@ const SETTINGS_PATH := "user://character_choice.cfg"
 const CHARACTER_COUNT := 4
 const ACTIONS := {
 	"idle": "rifle_aiming_idle",
+	"fire": "firing_rifle",
 	"walk": "walk_forward_left",
 	"run": "walk_forward_left",
 	"jump": "jump_down",
