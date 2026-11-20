@@ -57,10 +57,8 @@ func _build_world() -> void:
 	add_child(sun)
 	_box(Vector3(0, -0.5, -18), Vector3(90, 1, 90), Color("414943"), true)
 	_build_navigation()
-	# The enormous aerial scan remains optional: its underside is unsuitable for a walkable mobile environment.
-	if not OS.has_feature("mobile"):
-		_add_village_backdrop()
 	_build_road_details()
+	_build_fantasy_village()
 	_build_dungeon_approach()
 	_box(Vector3(-8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
@@ -163,13 +161,90 @@ func _build_road_details() -> void:
 			_box(Vector3(x, 0.5, z), Vector3(1.3, 1.0, 1.3), Color("42494e"))
 			_box(Vector3(x, 1.8, z), Vector3(0.75, 2.6, 0.75), Color("555a5a"))
 			_box(Vector3(x, 3.2, z), Vector3(1.1, 0.25, 1.1), Color("62625b"))
-	# Low ruined buildings give the road a readable town edge.
-	for z in [2.0, -12.0, -26.0]:
-		_box(Vector3(-15, 2.0, z), Vector3(7.0, 4.0, 7.0), Color("65615a"))
-		_box(Vector3(-15, 4.15, z), Vector3(7.5, 0.3, 7.5), Color("393c3b"))
-		_box(Vector3(-11.45, 1.7, z), Vector3(0.05, 2.7, 1.3), Color("292b2c"))
-		_box(Vector3(-11.44, 2.9, z - 2.0), Vector3(0.06, 1.0, 1.0), Color("353532"))
-		_box(Vector3(-11.44, 2.9, z + 2.0), Vector3(0.06, 1.0, 1.0), Color("353532"))
+
+# Original geometry inspired by misty ruined-village references; no Pinterest images are used as assets.
+func _build_fantasy_village() -> void:
+	for side in [-1.0, 1.0]:
+		for z in [3.0, -11.0, -25.0]:
+			_build_ruined_house(Vector3(side * 15.0, 0, z), side)
+	for tree in [Vector3(-29, 0, 5), Vector3(30, 0, -12), Vector3(-33, 0, -29), Vector3(34, 0, -39), Vector3(-30, 0, -52)]:
+		_build_dead_tree(tree)
+	# A well and braziers give the square a focal point and guide the eye.
+	_cylinder(Vector3(-7, 0.5, -12), 1.15, 1.0, Color("5a5950"), 10)
+	_cylinder(Vector3(-7, 1.01, -12), 1.0, 0.06, Color("171f21"), 10)
+	for p in [Vector3(-6, 0, 5), Vector3(6, 0, 5), Vector3(-6, 0, -29), Vector3(6, 0, -29)]:
+		_build_brazier(p)
+	# A subdued westward path points toward the crypt.
+	for i in range(8):
+		_box(Vector3(-8.0 - i * 2.2, 0.03, -33.0 - i * 1.15), Vector3(2.0, 0.06, 1.5), Color("52524c"))
+
+func _build_ruined_house(pos: Vector3, side: float) -> void:
+	var wall := Color("56574e")
+	var wood := Color("2a2a28")
+	# Two masonry walls and an open street-facing facade keep the silhouette readable.
+	_box(pos + Vector3(0, 1.55, -3), Vector3(6.2, 3.1, 0.45), wall)
+	_box(pos + Vector3(0, 1.55, 3), Vector3(6.2, 3.1, 0.45), wall)
+	_box(pos + Vector3(side * 3, 1.55, 0), Vector3(0.45, 3.1, 6.4), wall)
+	for z in [-2.6, 0.0, 2.6]:
+		_box(pos + Vector3(-side * 3, 1.55, z), Vector3(0.38, 3.1, 0.38), wood)
+	_box(pos + Vector3(-side * 3, 2.85, 0), Vector3(0.4, 0.35, 6.0), wood)
+	# Broken sloped roofs made from two weathered beams and roof slabs.
+	for slope in [-1.0, 1.0]:
+		var roof := _detail_box(pos + Vector3(slope * 1.55, 3.85, 0), Vector3(3.7, 0.18, 6.8), Color("353632"))
+		roof.rotation.z = -slope * 0.46
+		var beam := _detail_box(pos + Vector3(slope * 1.65, 3.75, -3.25), Vector3(3.8, 0.16, 0.18), wood)
+		beam.rotation.z = -slope * 0.46
+	_box(pos + Vector3(-side * 2.95, 1.15, 0), Vector3(0.1, 2.1, 1.25), Color("1f2322"))
+
+func _detail_box(pos: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	var shape := BoxMesh.new()
+	shape.size = size
+	node.mesh = shape
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 1.0
+	node.material_override = material
+	node.position = pos
+	add_child(node)
+	return node
+
+func _cylinder(pos: Vector3, radius: float, height: float, color: Color, sides: int = 6) -> MeshInstance3D:
+	var node := MeshInstance3D.new()
+	var mesh := CylinderMesh.new()
+	mesh.top_radius = radius * 0.75
+	mesh.bottom_radius = radius
+	mesh.height = height
+	mesh.radial_segments = sides
+	node.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.roughness = 1.0
+	node.material_override = mat
+	node.position = pos
+	add_child(node)
+	return node
+
+func _build_dead_tree(pos: Vector3) -> void:
+	_cylinder(pos + Vector3(0, 3.2, 0), 0.38, 6.4, Color("292c29"))
+	for i in range(5):
+		var angle := TAU * i / 5.0
+		var branch := _cylinder(pos + Vector3(cos(angle) * 0.8, 5.0 + 0.4 * (i % 2), sin(angle) * 0.8), 0.14, 3.0, Color("292c29"), 5)
+		branch.rotation = Vector3(sin(angle) * 0.65, 0, -cos(angle) * 0.65)
+
+func _build_brazier(pos: Vector3) -> void:
+	_cylinder(pos + Vector3(0, 0.65, 0), 0.19, 1.3, Color("302b26"))
+	_cylinder(pos + Vector3(0, 1.35, 0), 0.43, 0.25, Color("49423a"), 8)
+	var flame := _cylinder(pos + Vector3(0, 1.65, 0), 0.21, 0.45, Color("ec914d"), 6)
+	var material := flame.material_override as StandardMaterial3D
+	material.emission_enabled = true
+	material.emission = Color("f27b32")
+	var light := OmniLight3D.new()
+	light.position = pos + Vector3(0, 1.8, 0)
+	light.light_color = Color("f1a064")
+	light.light_energy = 0.7
+	light.omni_range = 7.0
+	add_child(light)
 
 func _box(pos: Vector3, size: Vector3, color: Color, solid := false) -> void:
 	var mesh := MeshInstance3D.new()
