@@ -4,6 +4,7 @@ const WorldModels = preload("res://scripts/world/model_environment.gd")
 
 func _ready() -> void:
 	WorldModels.add_to(self, Vector3.ZERO, 42.0)
+	WorldModels.ground_after_physics($TrainingDummy)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
 	env.background_color = Color("20252a")

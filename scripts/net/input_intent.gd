@@ -28,7 +28,7 @@ const MAX_SEQ := 0x7FFFFFFF
 var seq: int = 0
 var move: Vector2 = Vector2.ZERO    ## x = strafe, y = forward
 var look: Vector2 = Vector2.ZERO    ## x = yaw delta, y = pitch delta, radians
-actions: int = 0                    ## bitmask of ACTION_*
+var actions: int = 0                    ## bitmask of ACTION_*
 var sample_ms: int = 0              ## client clock at sample time
 
 

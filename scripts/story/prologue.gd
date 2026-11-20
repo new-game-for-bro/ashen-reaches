@@ -4,7 +4,7 @@ const WorldModels = preload("res://scripts/world/model_environment.gd")
 const PlayerScript = preload("res://scripts/story/story_player.gd")
 const Humanoid = preload("res://scripts/story/humanoid.gd")
 const RuinMonster = preload("res://scripts/story/ruin_monster.gd")
-const REN_POS := Vector3(0, 0, -5)
+const REN_POS := Vector3(-10, 0, -15)
 const GATE_POS := Vector3(0, 0, -38)
 const TRAIN_POS := Vector3(25, 0, -38)
 var player: CharacterBody3D
@@ -76,7 +76,7 @@ func _build_world() -> void:
 	player.name = "Amara"
 	player.set_script(PlayerScript)
 	add_child(player)
-	player.position = Vector3(0, 5.0, 2)
+	player.position = Vector3(-10, 5.0, -10)
 	player.add_to_group("player")
 	_spawn_ruin_monster()
 	player.attack_requested.connect(_on_attack)

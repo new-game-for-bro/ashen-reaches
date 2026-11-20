@@ -1,17 +1,17 @@
 extends RefCounted
 
-# This is the original model from models/library, made importable outside .gdignore.
+# The matching GLB contains the fountain geometry and its textures.
 static var collision_shapes: Dictionary = {}
-const CLOISTER = preload("res://models/environment/cloister_of_cathedral_of_st._mary.glb")
+const FOUNTAIN = preload("res://models/environment/ancient_corinth_-_peirene_fountain.glb")
 
 static func add_to(parent: Node3D, center: Vector3, width: float) -> void:
-	var model := CLOISTER.instantiate() as Node3D
-	model.name = "CloisterEnvironment"
+	var model := FOUNTAIN.instantiate() as Node3D
+	model.name = "CorinthFountainEnvironment"
 	parent.add_child(model)
 	var points: Array[Vector3] = []
 	_collect_points(model, Transform3D.IDENTITY, points)
 	if points.is_empty():
-		push_error("The cloister model has no visible meshes")
+		push_error("The fountain model has no visible meshes")
 		return
 	var low := points[0]
 	var high := points[0]
@@ -20,12 +20,13 @@ static func add_to(parent: Node3D, center: Vector3, width: float) -> void:
 		high = high.max(point)
 	var span := maxf(high.x - low.x, high.z - low.z)
 	if span <= 0.001:
-		push_error("The cloister model has invalid dimensions")
+		push_error("The fountain model has invalid dimensions")
 		return
 	var factor := width / span
 	model.scale = Vector3.ONE * factor
 	model.position = center - Vector3((low.x + high.x) / 2.0 * factor, low.y * factor, (low.z + high.z) / 2.0 * factor)
 	_add_collision(model)
+	_add_boundaries(parent, center, Vector2(high.x - low.x, high.z - low.z) * factor, (high.y - low.y) * factor)
 
 static func _collect_points(node: Node, transform_so_far: Transform3D, points: Array[Vector3]) -> void:
 	var current := transform_so_far
@@ -81,3 +82,22 @@ static func place_on_ground(actor: Node3D) -> void:
 	var hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty() and hit.normal.y > 0.5:
 		actor.global_position.y = hit.position.y + 0.08
+
+# Keep characters inside the scan's play area while leaving the surroundings visible.
+static func _add_boundaries(parent: Node3D, center: Vector3, area: Vector2, model_height: float) -> void:
+	var height := maxf(30.0, model_height + 20.0)
+	var body := StaticBody3D.new()
+	body.name = "PlayAreaBoundary"
+	parent.add_child(body)
+	for side in [-1.0, 1.0]:
+		for along_x in [true, false]:
+			var collision := CollisionShape3D.new()
+			var box := BoxShape3D.new()
+			if along_x:
+				box.size = Vector3(1.0, height, area.y + 2.0)
+				collision.position = center + Vector3(side * (area.x / 2.0 + 0.5), height / 2.0 - 10.0, 0)
+			else:
+				box.size = Vector3(area.x + 2.0, height, 1.0)
+				collision.position = center + Vector3(0, height / 2.0 - 10.0, side * (area.y / 2.0 + 0.5))
+			collision.shape = box
+			body.add_child(collision)

@@ -41,7 +41,7 @@ func run_test() -> void:
 	var old_yaw: float = player.camera_target_yaw
 	controls.look_dragged.emit(Vector2(10, 0))
 	assert(player.camera_target_yaw < old_yaw)
-	player.global_position = Vector3(0, 0, -4)
+	player.global_position = game.ren.global_position + Vector3(0, 0, 1)
 	controls._on_action("Attack")
 	assert(game.stage == "dodge")
 	controls._on_action("Dodge")
