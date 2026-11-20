@@ -1,7 +1,7 @@
 name: Private Android APK
 on:
   push:
-    branches: [main, fix/android-build-actions]
+    branches: [main, feature/model-environments]
   workflow_dispatch:
 permissions:
   contents: read

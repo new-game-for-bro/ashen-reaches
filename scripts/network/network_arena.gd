@@ -1,5 +1,7 @@
 extends Node3D
 
+const WorldModels = preload("res://scripts/world/model_environment.gd")
+
 const PlayerScript = preload("res://scripts/network/network_player.gd")
 const InputSetup = preload("res://scripts/player/input_setup.gd")
 @onready var players_node: Node3D = $Players
@@ -8,6 +10,7 @@ var chat_input: LineEdit
 var chat_output: RichTextLabel
 
 func _ready() -> void:
+	WorldModels.add_to(self, Vector3.ZERO, 75.0)
 	InputSetup.configure()
 	spawner.spawn_function = _create_player
 	multiplayer.peer_disconnected.connect(_remove_player)

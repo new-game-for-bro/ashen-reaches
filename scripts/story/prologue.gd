@@ -1,5 +1,6 @@
 extends Node3D
 
+const WorldModels = preload("res://scripts/world/model_environment.gd")
 const PlayerScript = preload("res://scripts/story/story_player.gd")
 const Humanoid = preload("res://scripts/story/humanoid.gd")
 const RuinMonster = preload("res://scripts/story/ruin_monster.gd")
@@ -54,36 +55,21 @@ func _build_world() -> void:
 	sun.light_color = Color("ffe1b0")
 	sun.light_energy = 1.05
 	add_child(sun)
-	_box(Vector3(0, -0.5, -18), Vector3(90, 1, 90), Color("638653"), true)
+	# Collision-only floor: all visible architecture comes from the models folder.
+	var floor_body := StaticBody3D.new()
+	var floor_shape := CollisionShape3D.new()
+	var floor_box := BoxShape3D.new()
+	floor_box.size = Vector3(90, 1, 90)
+	floor_shape.shape = floor_box
+	floor_body.position = Vector3(0, -0.5, -18)
+	floor_body.add_child(floor_shape)
+	add_child(floor_body)
+	WorldModels.add_to(self, Vector3(0, 0, -18), 70.0)
 	_build_navigation()
-	_build_road_details()
-	_build_fantasy_village()
-	_place_fountain()
-	_build_colorful_nature()
-	_build_dungeon_approach()
-	_place_reaper()
-	_box(Vector3(-8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
-	_box(Vector3(8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
-	_box(Vector3(0, 8, -39), Vector3(9, 1, 2), Color("464c55"), true)
-	_label("LATCH CITY GATE", Vector3(0, 9.5, -39))
-	_label("OLD PLATFORM →", Vector3(13, 3, -37))
-	# Giant kneels beyond the wall.
-	_box(Vector3(0, 2.7, -46), Vector3(4.5, 5.4, 2.6), Color("625b5b"))
-	_box(Vector3(0, 6.2, -45), Vector3(3.0, 2.4, 2.4), Color("7a6d67"))
-	_label("THE GIANT", Vector3(0, 8.2, -45))
 	ren = _person(REN_POS, Color("a17b69"), "REN")
 	train = Node3D.new()
 	train.position = TRAIN_POS
 	add_child(train)
-	var carriage := MeshInstance3D.new()
-	var carriage_mesh := BoxMesh.new()
-	carriage_mesh.size = Vector3(10, 3.5, 3)
-	carriage.mesh = carriage_mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color("4b626e")
-	carriage.material_override = material
-	carriage.position.y = 1.8
-	train.add_child(carriage)
 	_label("THE LAST TRAIN", TRAIN_POS + Vector3(0, 5, 0))
 	player = CharacterBody3D.new()
 	player.name = "Amara"
@@ -95,35 +81,6 @@ func _build_world() -> void:
 	player.attack_requested.connect(_on_attack)
 	player.interact_requested.connect(_on_interact)
 	player.dodge_requested.connect(_on_dodge)
-
-func _place_fountain() -> void:
-	var path := "res://models/environment/ancient_corinth_-_peirene_fountain.glb"
-	if not ResourceLoader.exists(path, "PackedScene"):
-		return
-	var fountain_scene := load(path) as PackedScene
-	if fountain_scene == null:
-		return
-	var fountain := fountain_scene.instantiate() as Node3D
-	if fountain == null:
-		return
-	fountain.name = "AncientFountain"
-	fountain.scale = Vector3.ONE * 0.13
-	fountain.position = Vector3(23, 0.56, -15)
-	add_child(fountain)
-
-func _place_reaper() -> void:
-	var path := "res://models/environment/death_reaper.glb"
-	if not ResourceLoader.exists(path, "PackedScene"):
-		return
-	var scene := load(path) as PackedScene
-	if scene == null:
-		return
-	var statue := scene.instantiate() as Node3D
-	if statue == null:
-		return
-	statue.name = "CryptReaperStatue"
-	statue.position = Vector3(-31, 0.02, -40)
-	add_child(statue)
 
 func _build_navigation() -> void:
 	# A flat navigation polygon covers the same continuous ground as the collision floor.
@@ -141,163 +98,6 @@ func _spawn_ruin_monster() -> void:
 	enemy.player = player
 	enemy.patrol_points = [Vector3(-24, 0, -20), Vector3(-28, 0, -33), Vector3(-20, 0, -36)]
 	add_child(enemy)
-
-func _build_dungeon_approach() -> void:
-	# Visible landmark with a broad, open approach on the west side of the village.
-	_box(Vector3(-29, 2, -43), Vector3(2, 4, 2), Color("776188"), true)
-	_box(Vector3(-21, 2, -43), Vector3(2, 4, 2), Color("776188"), true)
-	_box(Vector3(-25, 4, -43), Vector3(10, 1, 2), Color("a583aa"), true)
-	_box(Vector3(-25, 1.8, -43.2), Vector3(6, 3.6, 0.15), Color("181b1b"))
-	_label("HOLLOW CRYPT", Vector3(-25, 5.5, -43))
-
-func _build_road_details() -> void:
-	# A broken stone road and scattered columns frame the route to the gate.
-	var stone_mesh := BoxMesh.new()
-	stone_mesh.size = Vector3(1.55, 0.035, 1.85)
-	var stone_mat := StandardMaterial3D.new()
-	stone_mat.albedo_color = Color("b5a48c")
-	stone_mat.roughness = 1.0
-	stone_mesh.material = stone_mat
-	var instances := MultiMesh.new()
-	instances.transform_format = MultiMesh.TRANSFORM_3D
-	instances.mesh = stone_mesh
-	instances.instance_count = 115
-	for row in range(23):
-		for column in range(5):
-			var x := (column - 2) * 1.7 + (0.35 if row % 2 == 0 else -0.35)
-			instances.set_instance_transform(row * 5 + column, Transform3D(Basis.IDENTITY, Vector3(x, 0.015, 5.0 - row * 2.05)))
-	var road := MultiMeshInstance3D.new()
-	road.name = "RoadStones"
-	road.multimesh = instances
-	add_child(road)
-	for z in [0.0, -11.0, -24.0]:
-		for side in [-1.0, 1.0]:
-			var x: float = side * 9.3
-			_box(Vector3(x, 0.5, z), Vector3(1.3, 1.0, 1.3), Color("7d8581"))
-			_box(Vector3(x, 1.8, z), Vector3(0.75, 2.6, 0.75), Color("b2a59a"))
-			_box(Vector3(x, 3.2, z), Vector3(1.1, 0.25, 1.1), Color("d3bf9d"))
-
-# Original geometry inspired by misty ruined-village references; no Pinterest images are used as assets.
-func _build_fantasy_village() -> void:
-	for side in [-1.0, 1.0]:
-		for z in [3.0, -11.0, -25.0]:
-			_build_ruined_house(Vector3(side * 15.0, 0, z), side)
-	for tree in [Vector3(-29, 0, 5), Vector3(30, 0, -12), Vector3(-33, 0, -29), Vector3(34, 0, -39), Vector3(-30, 0, -52)]:
-		_build_dead_tree(tree)
-	# A well and braziers give the square a focal point and guide the eye.
-	_cylinder(Vector3(-7, 0.5, -12), 1.15, 1.0, Color("5a5950"), 10)
-	_cylinder(Vector3(-7, 1.01, -12), 1.0, 0.06, Color("171f21"), 10)
-	for p in [Vector3(-6, 0, 5), Vector3(6, 0, 5), Vector3(-6, 0, -29), Vector3(6, 0, -29)]:
-		_build_brazier(p)
-	# A subdued westward path points toward the crypt.
-	for i in range(8):
-		_box(Vector3(-8.0 - i * 2.2, 0.03, -33.0 - i * 1.15), Vector3(2.0, 0.06, 1.5), Color("52524c"))
-
-func _build_colorful_nature() -> void:
-	# Low-cost clusters of foliage and flowers stay clear of the road and objectives.
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 87142
-	for i in range(45):
-		var side := -1.0 if i % 2 == 0 else 1.0
-		var x := side * rng.randf_range(20.0, 41.0)
-		var z := rng.randf_range(-55.0, 18.0)
-		var patch := _cylinder(Vector3(x, 0.12, z), rng.randf_range(0.4, 1.0), 0.24, Color("4d9c65"), 5)
-		patch.name = "FoliagePatch"
-		var blossoms := _cylinder(Vector3(x, 0.31, z), 0.13, 0.2, [Color("f0a1be"), Color("ecca66"), Color("a4a4ec")][i % 3], 5)
-		blossoms.name = "Wildflowers"
-	for tree in [Vector3(-29, 0, 5), Vector3(30, 0, -12), Vector3(-33, 0, -29), Vector3(34, 0, -39), Vector3(-30, 0, -52)]:
-		var crown := _cylinder(tree + Vector3(0, 6.4, 0), 2.3, 2.5, Color("518d67"), 7)
-		crown.name = "TreeCanopy"
-	for side in [-1.0, 1.0]:
-		_box(Vector3(side * 4.7, 4.8, -38), Vector3(0.08, 2.4, 1.1), Color("b9504f"))
-
-func _build_ruined_house(pos: Vector3, side: float) -> void:
-	var wall := Color("b69579")
-	var wood := Color("654737")
-	# Two masonry walls and an open street-facing facade keep the silhouette readable.
-	_box(pos + Vector3(0, 1.55, -3), Vector3(6.2, 3.1, 0.45), wall)
-	_box(pos + Vector3(0, 1.55, 3), Vector3(6.2, 3.1, 0.45), wall)
-	_box(pos + Vector3(side * 3, 1.55, 0), Vector3(0.45, 3.1, 6.4), wall)
-	for z in [-2.6, 0.0, 2.6]:
-		_box(pos + Vector3(-side * 3, 1.55, z), Vector3(0.38, 3.1, 0.38), wood)
-	_box(pos + Vector3(-side * 3, 2.85, 0), Vector3(0.4, 0.35, 6.0), wood)
-	# Broken sloped roofs made from two weathered beams and roof slabs.
-	for slope in [-1.0, 1.0]:
-		var roof := _detail_box(pos + Vector3(slope * 1.55, 3.85, 0), Vector3(3.7, 0.18, 6.8), Color("87554b"))
-		roof.rotation.z = -slope * 0.46
-		var beam := _detail_box(pos + Vector3(slope * 1.65, 3.75, -3.25), Vector3(3.8, 0.16, 0.18), wood)
-		beam.rotation.z = -slope * 0.46
-	_box(pos + Vector3(-side * 2.95, 1.15, 0), Vector3(0.1, 2.1, 1.25), Color("1f2322"))
-
-func _detail_box(pos: Vector3, size: Vector3, color: Color) -> MeshInstance3D:
-	var node := MeshInstance3D.new()
-	var shape := BoxMesh.new()
-	shape.size = size
-	node.mesh = shape
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	material.roughness = 1.0
-	node.material_override = material
-	node.position = pos
-	add_child(node)
-	return node
-
-func _cylinder(pos: Vector3, radius: float, height: float, color: Color, sides: int = 6) -> MeshInstance3D:
-	var node := MeshInstance3D.new()
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = radius * 0.75
-	mesh.bottom_radius = radius
-	mesh.height = height
-	mesh.radial_segments = sides
-	node.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 1.0
-	node.material_override = mat
-	node.position = pos
-	add_child(node)
-	return node
-
-func _build_dead_tree(pos: Vector3) -> void:
-	_cylinder(pos + Vector3(0, 3.2, 0), 0.38, 6.4, Color("292c29"))
-	for i in range(5):
-		var angle := TAU * i / 5.0
-		var branch := _cylinder(pos + Vector3(cos(angle) * 0.8, 5.0 + 0.4 * (i % 2), sin(angle) * 0.8), 0.14, 3.0, Color("292c29"), 5)
-		branch.rotation = Vector3(sin(angle) * 0.65, 0, -cos(angle) * 0.65)
-
-func _build_brazier(pos: Vector3) -> void:
-	_cylinder(pos + Vector3(0, 0.65, 0), 0.19, 1.3, Color("302b26"))
-	_cylinder(pos + Vector3(0, 1.35, 0), 0.43, 0.25, Color("49423a"), 8)
-	var flame := _cylinder(pos + Vector3(0, 1.65, 0), 0.21, 0.45, Color("ec914d"), 6)
-	var material := flame.material_override as StandardMaterial3D
-	material.emission_enabled = true
-	material.emission = Color("f27b32")
-	var light := OmniLight3D.new()
-	light.position = pos + Vector3(0, 1.8, 0)
-	light.light_color = Color("f1a064")
-	light.light_energy = 0.7
-	light.omni_range = 7.0
-	add_child(light)
-
-func _box(pos: Vector3, size: Vector3, color: Color, solid := false) -> void:
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = size
-	mesh.mesh = box
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	mesh.material_override = material
-	mesh.position = pos
-	add_child(mesh)
-	if solid:
-		var body := StaticBody3D.new()
-		var collision := CollisionShape3D.new()
-		var shape := BoxShape3D.new()
-		shape.size = size
-		collision.shape = shape
-		body.position = pos
-		body.add_child(collision)
-		add_child(body)
 
 func _person(pos: Vector3, color: Color, title: String) -> Node3D:
 	var root := Node3D.new()

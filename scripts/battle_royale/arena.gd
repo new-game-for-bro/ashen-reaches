@@ -1,5 +1,7 @@
 extends Node3D
 
+const WorldModels = preload("res://scripts/world/model_environment.gd")
+
 const BotScript = preload("res://scripts/battle_royale/bot.gd")
 const INITIAL_RADIUS: float = 42.0
 const FINAL_RADIUS: float = 8.0
@@ -18,6 +20,7 @@ var health_label: Label
 var result: Label
 
 func _ready() -> void:
+	WorldModels.add_to(self, Vector3.ZERO, 75.0)
 	_build_environment()
 	_build_ui()
 	_build_ring()
