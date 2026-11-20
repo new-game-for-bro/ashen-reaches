@@ -1,7 +1,7 @@
 name: Private Android APK
 on:
   push:
-    branches: [main, feature/corinth-environment]
+    branches: [main, feature/corinth-environment, feature/character-selection]
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +38,7 @@ jobs:
         run: |
           GODOT=/tmp/godot/Godot_v4.7.2-stable_linux.x86_64
           "$GODOT" --headless --editor --path . --import
+          timeout 90 "$GODOT" --headless --path . --script res://tests/character_catalog_smoke.gd
           timeout 120 "$GODOT" --headless --path . --script res://tests/model_probe.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/story_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/royale_smoke.gd

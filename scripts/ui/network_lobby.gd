@@ -1,5 +1,7 @@
 extends Control
 
+const CharacterCatalog = preload("res://scripts/characters/character_catalog.gd")
+
 var username: LineEdit
 var address: LineEdit
 var message_input: LineEdit
@@ -29,6 +31,19 @@ func _ready() -> void:
 	title.text = "ASHEN REACHES  /  CHOOSE YOUR MODE"
 	title.add_theme_font_size_override("font_size", 22)
 	column.add_child(title)
+	var character_picker := OptionButton.new()
+	character_picker.add_item("Default character", 0)
+	for id in range(1, CharacterCatalog.CHARACTER_COUNT + 1):
+		if CharacterCatalog.is_available(id):
+			character_picker.add_item("Character %d" % id, id)
+	var selected := CharacterCatalog.selected_id()
+	for index in range(character_picker.item_count):
+		if character_picker.get_item_id(index) == selected:
+			character_picker.select(index)
+	character_picker.item_selected.connect(func(index: int) -> void:
+		CharacterCatalog.select(character_picker.get_item_id(index))
+	)
+	column.add_child(character_picker)
 	username = LineEdit.new()
 	username.placeholder_text = "Player name"
 	username.text = "Emberbound"

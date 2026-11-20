@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const CharacterCatalog = preload("res://scripts/characters/character_catalog.gd")
+
 const WorldModels = preload("res://scripts/world/model_environment.gd")
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 
@@ -11,6 +13,8 @@ const MAX_INPUT_RATE_MS: int = 12
 const INPUT_TIMEOUT_MS: int = 500
 const SNAPSHOT_INTERVAL: float = 0.05
 
+var character_id: int = 0
+var character_animation: AnimationPlayer
 var peer_id: int = 0
 var display_name: String = "Emberbound"
 var input_direction: Vector2 = Vector2.ZERO
@@ -41,13 +45,15 @@ func _ready() -> void:
 	visual = Node3D.new()
 	visual.name = "Visual"
 	add_child(visual)
-	var mesh := MeshInstance3D.new()
-	var body := CapsuleMesh.new()
-	body.radius = 0.4
-	body.height = 1.8
-	mesh.mesh = body
-	mesh.position.y = 0.9
-	visual.add_child(mesh)
+	character_animation = CharacterCatalog.attach(visual, character_id)
+	if not character_animation:
+		var mesh := MeshInstance3D.new()
+		var body := CapsuleMesh.new()
+		body.radius = 0.4
+		body.height = 1.8
+		mesh.mesh = body
+		mesh.position.y = 0.9
+		visual.add_child(mesh)
 	label = Label3D.new()
 	label.text = display_name + "  ·  HP 100"
 	label.position.y = 2.2
@@ -113,6 +119,7 @@ func _physics_process(delta: float) -> void:
 			visual.rotation.y = atan2(direction.x, direction.z)
 		move_and_slide()
 		animation_state = "fall" if not is_on_floor() and velocity.y < 0 else "jump" if not is_on_floor() else "run" if direction.length() > 0.1 and sprinting else "walk" if direction.length() > 0.1 else "idle"
+		CharacterCatalog.play(character_animation, animation_state)
 		snapshot_timer -= delta
 		if snapshot_timer <= 0.0:
 			snapshot_timer = SNAPSHOT_INTERVAL
@@ -145,6 +152,7 @@ func _receive_state(position_value: Vector3, yaw: float, hp: int, state: String)
 		visual.rotation.y = yaw
 		health = hp
 		animation_state = state
+		CharacterCatalog.play(character_animation, animation_state)
 		label.text = display_name + "  ·  HP " + str(health)
 		has_snapshot = true
 

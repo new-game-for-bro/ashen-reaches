@@ -27,7 +27,7 @@ func _ready() -> void:
 			get_tree().change_scene_to_file.call_deferred("res://scenes/ui/network_lobby.tscn")
 	elif multiplayer.is_server():
 		if not NetworkManager.dedicated:
-			spawner.spawn({"id": 1, "name": NetworkManager.player_name})
+			spawner.spawn({"id": 1, "name": NetworkManager.player_name, "character": NetworkManager.character_choices.get(1, 0)})
 
 func _create_player(info: Dictionary) -> Node:
 	var player := CharacterBody3D.new()
@@ -35,6 +35,7 @@ func _create_player(info: Dictionary) -> Node:
 	player.set_script(PlayerScript)
 	player.peer_id = int(info["id"])
 	player.display_name = str(info["name"])
+	player.character_id = int(info.get("character", 0))
 	player.position = Vector3(float(player.peer_id % 5) * 2.0, 0, 0)
 	return player
 
@@ -45,7 +46,7 @@ func announce_ready() -> void:
 	var id := multiplayer.get_remote_sender_id()
 	if id <= 1 or not NetworkManager.players.has(id) or players_node.has_node(str(id)):
 		return
-	spawner.spawn({"id": id, "name": NetworkManager.players[id]})
+	spawner.spawn({"id": id, "name": NetworkManager.players[id], "character": NetworkManager.character_choices.get(id, 0)})
 
 func _remove_player(id: int) -> void:
 	if multiplayer.is_server():
