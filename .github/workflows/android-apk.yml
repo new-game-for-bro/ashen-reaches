@@ -47,6 +47,12 @@ jobs:
           timeout 90 "$GODOT" --headless --path . --script res://tests/join_code_test.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/match_state_test.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/match_ticket_test.gd
+          timeout 40 "$GODOT" --headless --path . --script res://tests/arena_smoke.gd -- server > /tmp/arena-server.log 2>&1 &
+          SERVER_PID=$!
+          sleep 2
+          timeout 40 "$GODOT" --headless --path . --script res://tests/arena_smoke.gd -- client > /tmp/arena-client.log 2>&1 || { cat /tmp/arena-server.log /tmp/arena-client.log; exit 1; }
+          wait "$SERVER_PID" || { cat /tmp/arena-server.log /tmp/arena-client.log; exit 1; }
+          cat /tmp/arena-server.log /tmp/arena-client.log
           mkdir -p /tmp/ashen-android
           "$GODOT" --headless --path . --export-debug Android /tmp/ashen-android/Ashen-Reaches-debug.apk
           test -s /tmp/ashen-android/Ashen-Reaches-debug.apk
