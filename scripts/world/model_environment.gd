@@ -64,8 +64,9 @@ static func _add_collision(node: Node) -> void:
 
 # Wait for the physics server to register the model before placing actors.
 static func ground_after_physics(actor: Node3D) -> void:
-	await actor.get_tree().physics_frame
-	await actor.get_tree().physics_frame
+	var tree := actor.get_tree()
+	await tree.physics_frame
+	await tree.physics_frame
 	if not is_instance_valid(actor) or not actor.is_inside_tree():
 		return
 	place_on_ground(actor)

@@ -1,7 +1,7 @@
 name: Private Android APK
 on:
   push:
-    branches: [fix/world-collision]
+    branches: [main, fix/world-collision]
   workflow_dispatch:
 permissions:
   contents: read
