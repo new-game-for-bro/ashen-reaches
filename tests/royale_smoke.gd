@@ -7,10 +7,12 @@ func run_test() -> void:
 	root.add_child(arena)
 	await process_frame
 	assert(get_nodes_in_group("royale_contestants").size() == 7)
+	assert(arena.MAP_WIDTH == 600.0)
+	assert(arena.radius == 300.0)
 	var bot = get_nodes_in_group("training_targets")[0]
 	bot.hit(15)
 	assert(bot.health == 45)
-	arena.player.global_position = Vector3(48, 0, 0)
+	arena.player.global_position = Vector3(310, 0, 0)
 	arena._process(1.1)
 	assert(arena.player.health == 92)
 	arena.player.global_position = Vector3.ZERO
