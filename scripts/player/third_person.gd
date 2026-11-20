@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const WorldModels = preload("res://scripts/world/model_environment.gd")
+
 signal health_changed(value: int)
 signal defeated
 
@@ -29,6 +31,7 @@ var target: Node3D
 var placeholder_blade: MeshInstance3D
 
 func _ready() -> void:
+	WorldModels.ground_after_physics(self)
 	InputSetup.configure()
 	_add_placeholder()
 	if OS.has_feature("mobile"):
