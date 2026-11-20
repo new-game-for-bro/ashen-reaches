@@ -1,5 +1,6 @@
 extends CharacterBody3D
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
+const Humanoid = preload("res://scripts/story/humanoid.gd")
 signal interact_requested
 signal attack_requested
 signal dodge_requested
@@ -11,6 +12,10 @@ var attack_delay: float = 0.0
 var control_enabled: bool = true
 var dodge_time: float = 0.0
 var dodge_direction: Vector3 = Vector3.ZERO
+@export_range(0.001, 0.01, 0.0001) var mouse_sensitivity := 0.003
+@export_range(1.0, 30.0, 0.5) var camera_smoothing := 14.0
+var camera_target_yaw := 0.0
+var camera_target_pitch := -0.12
 
 func _ready() -> void:
 	var shape := CollisionShape3D.new()
@@ -22,16 +27,7 @@ func _ready() -> void:
 	add_child(shape)
 	avatar = Node3D.new()
 	add_child(avatar)
-	var body := MeshInstance3D.new()
-	var mesh := CapsuleMesh.new()
-	mesh.radius = 0.38
-	mesh.height = 1.8
-	body.mesh = mesh
-	body.position.y = 0.9
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color("778ba2")
-	body.material_override = material
-	avatar.add_child(body)
+	Humanoid.build(avatar, Color("566677"), Color("b98c73"), Color("332b29"))
 	sword = Node3D.new()
 	sword.position = Vector3(0.55, 1, 0.15)
 	avatar.add_child(sword)
@@ -42,13 +38,20 @@ func _ready() -> void:
 	blade.position.y = 0.35
 	sword.add_child(blade)
 	camera_pivot = Node3D.new()
-	camera_pivot.position.y = 1.4
+	camera_pivot.name = "CameraPivot"
+	camera_pivot.position.y = 1.65
+	camera_pivot.rotation.x = camera_target_pitch
 	add_child(camera_pivot)
 	var arm := SpringArm3D.new()
+	arm.name = "SpringArm3D"
 	arm.spring_length = 5.0
+	var camera_shape := SphereShape3D.new()
+	camera_shape.radius = 0.25
+	arm.shape = camera_shape
 	arm.add_excluded_object(get_rid())
 	camera_pivot.add_child(arm)
 	var camera := Camera3D.new()
+	camera.name = "Camera3D"
 	camera.current = true
 	arm.add_child(camera)
 	if OS.has_feature("mobile"):
@@ -56,10 +59,19 @@ func _ready() -> void:
 	else:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
+# Mouse and touch share the same target; smooth exponentially for consistent feel.
+func _apply_look(relative: Vector2, sensitivity: float) -> void:
+	camera_target_yaw -= relative.x * sensitivity
+	camera_target_pitch = clampf(camera_target_pitch - relative.y * sensitivity, -0.8, 0.55)
+
+func _process(delta: float) -> void:
+	var weight := 1.0 - exp(-camera_smoothing * delta)
+	camera_pivot.rotation.y = lerp_angle(camera_pivot.rotation.y, camera_target_yaw, weight)
+	camera_pivot.rotation.x = lerpf(camera_pivot.rotation.x, camera_target_pitch, weight)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		camera_pivot.rotation.y -= event.relative.x * 0.003
-		camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - event.relative.y * 0.003, -0.8, 0.55)
+		_apply_look(event.relative, mouse_sensitivity)
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -126,8 +138,7 @@ func _on_touch_action(action: String) -> void:
 func _on_touch_look(relative: Vector2) -> void:
 	var sensitivity: float = touch_controls.look_sensitivity
 	var vertical: float = -1.0 if touch_controls.invert_y else 1.0
-	camera_pivot.rotation.y -= relative.x * sensitivity
-	camera_pivot.rotation.x = clampf(camera_pivot.rotation.x - relative.y * sensitivity * vertical, -0.8, 0.55)
+	_apply_look(Vector2(relative.x, relative.y * vertical), sensitivity)
 
 
 func _start_dodge() -> void:

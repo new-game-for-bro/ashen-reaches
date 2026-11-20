@@ -1,6 +1,9 @@
 extends Node3D
 
 const PlayerScript = preload("res://scripts/story/story_player.gd")
+const Humanoid = preload("res://scripts/story/humanoid.gd")
+const RuinMonster = preload("res://scripts/story/ruin_monster.gd")
+const VILLAGE_PATH := "res://residential_buildings_ancient_villages.glb"
 const REN_POS := Vector3(0, 0, -5)
 const GATE_POS := Vector3(0, 0, -38)
 const TRAIN_POS := Vector3(25, 0, -38)
@@ -29,27 +32,36 @@ func _ready() -> void:
 
 func _build_world() -> void:
 	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color("202b38")
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color("29394d")
+	sky_material.sky_horizon_color = Color("a58d83")
+	sky_material.ground_bottom_color = Color("292d30")
+	sky_material.ground_horizon_color = Color("7c7472")
+	sky.sky_material = sky_material
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color("a5b8c9")
 	env.ambient_light_energy = 0.6
 	env.fog_enabled = true
-	env.fog_light_color = Color("566577")
+	env.fog_light_color = Color("827b7a")
 	env.fog_density = 0.01
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, -30, 0)
-	sun.light_color = Color("c6d0d8")
+	sun.light_color = Color("e3c3a5")
 	sun.light_energy = 0.85
 	add_child(sun)
-	_box(Vector3(0, -0.5, -18), Vector3(22, 1, 55), Color("4a5159"), true)
-	_box(Vector3(14, -0.5, -38), Vector3(35, 1, 15), Color("414953"), true)
-	# A broad rooftop, a road and the walls of Latch, all placeholders.
-	_box(Vector3(-10, 1.5, -14), Vector3(1, 3, 32), Color("383f48"), true)
-	_box(Vector3(10, 1.5, -14), Vector3(1, 3, 32), Color("383f48"), true)
+	_box(Vector3(0, -0.5, -18), Vector3(90, 1, 90), Color("414943"), true)
+	_build_navigation()
+	# The enormous aerial scan remains optional: its underside is unsuitable for a walkable mobile environment.
+	if not OS.has_feature("mobile"):
+		_add_village_backdrop()
+	_build_road_details()
+	_build_dungeon_approach()
 	_box(Vector3(-8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(0, 8, -39), Vector3(9, 1, 2), Color("464c55"), true)
@@ -78,9 +90,86 @@ func _build_world() -> void:
 	player.set_script(PlayerScript)
 	add_child(player)
 	player.position = Vector3(0, 0.1, 2)
+	player.add_to_group("player")
+	_spawn_ruin_monster()
 	player.attack_requested.connect(_on_attack)
 	player.interact_requested.connect(_on_interact)
 	player.dodge_requested.connect(_on_dodge)
+
+# The scan is scenery beside the playable route; the existing floor and walls
+# provide simple collision and keep the story route accessible.
+func _add_village_backdrop() -> void:
+	if not ResourceLoader.exists(VILLAGE_PATH, "PackedScene"):
+		return
+	var scene := load(VILLAGE_PATH) as PackedScene
+	if scene == null:
+		return
+	var village := scene.instantiate() as Node3D
+	if village == null:
+		return
+	village.name = "AncientVillageBackdrop"
+	village.scale = Vector3.ONE * 0.18
+	village.position = Vector3(39, -2.0, -32)
+	add_child(village)
+
+func _build_navigation() -> void:
+	# A flat navigation polygon covers the same continuous ground as the collision floor.
+	var region := NavigationRegion3D.new()
+	region.name = "VillageNavigation"
+	var nav := NavigationMesh.new()
+	nav.vertices = PackedVector3Array([Vector3(-44, 0.05, -62), Vector3(44, 0.05, -62), Vector3(44, 0.05, 26), Vector3(-44, 0.05, 26)])
+	nav.add_polygon(PackedInt32Array([0, 1, 2, 3]))
+	region.navigation_mesh = nav
+	add_child(region)
+
+func _spawn_ruin_monster() -> void:
+	var enemy := RuinMonster.new()
+	enemy.position = Vector3(-24, 0.1, -20)
+	enemy.player = player
+	enemy.patrol_points = [Vector3(-24, 0, -20), Vector3(-28, 0, -33), Vector3(-20, 0, -36)]
+	add_child(enemy)
+
+func _build_dungeon_approach() -> void:
+	# Visible landmark with a broad, open approach on the west side of the village.
+	_box(Vector3(-29, 2, -43), Vector3(2, 4, 2), Color("514b49"), true)
+	_box(Vector3(-21, 2, -43), Vector3(2, 4, 2), Color("514b49"), true)
+	_box(Vector3(-25, 4, -43), Vector3(10, 1, 2), Color("625a54"), true)
+	_box(Vector3(-25, 1.8, -43.2), Vector3(6, 3.6, 0.15), Color("181b1b"))
+	_label("HOLLOW CRYPT", Vector3(-25, 5.5, -43))
+
+func _build_road_details() -> void:
+	# A broken stone road and scattered columns frame the route to the gate.
+	var stone_mesh := BoxMesh.new()
+	stone_mesh.size = Vector3(1.55, 0.035, 1.85)
+	var stone_mat := StandardMaterial3D.new()
+	stone_mat.albedo_color = Color("535a60")
+	stone_mat.roughness = 1.0
+	stone_mesh.material = stone_mat
+	var instances := MultiMesh.new()
+	instances.transform_format = MultiMesh.TRANSFORM_3D
+	instances.mesh = stone_mesh
+	instances.instance_count = 115
+	for row in range(23):
+		for column in range(5):
+			var x := (column - 2) * 1.7 + (0.35 if row % 2 == 0 else -0.35)
+			instances.set_instance_transform(row * 5 + column, Transform3D(Basis.IDENTITY, Vector3(x, 0.015, 5.0 - row * 2.05)))
+	var road := MultiMeshInstance3D.new()
+	road.name = "RoadStones"
+	road.multimesh = instances
+	add_child(road)
+	for z in [0.0, -11.0, -24.0]:
+		for side in [-1.0, 1.0]:
+			var x: float = side * 9.3
+			_box(Vector3(x, 0.5, z), Vector3(1.3, 1.0, 1.3), Color("42494e"))
+			_box(Vector3(x, 1.8, z), Vector3(0.75, 2.6, 0.75), Color("555a5a"))
+			_box(Vector3(x, 3.2, z), Vector3(1.1, 0.25, 1.1), Color("62625b"))
+	# Low ruined buildings give the road a readable town edge.
+	for z in [2.0, -12.0, -26.0]:
+		_box(Vector3(-15, 2.0, z), Vector3(7.0, 4.0, 7.0), Color("65615a"))
+		_box(Vector3(-15, 4.15, z), Vector3(7.5, 0.3, 7.5), Color("393c3b"))
+		_box(Vector3(-11.45, 1.7, z), Vector3(0.05, 2.7, 1.3), Color("292b2c"))
+		_box(Vector3(-11.44, 2.9, z - 2.0), Vector3(0.06, 1.0, 1.0), Color("353532"))
+		_box(Vector3(-11.44, 2.9, z + 2.0), Vector3(0.06, 1.0, 1.0), Color("353532"))
 
 func _box(pos: Vector3, size: Vector3, color: Color, solid := false) -> void:
 	var mesh := MeshInstance3D.new()
@@ -106,16 +195,7 @@ func _person(pos: Vector3, color: Color, title: String) -> Node3D:
 	var root := Node3D.new()
 	root.position = pos
 	add_child(root)
-	var mesh := MeshInstance3D.new()
-	var capsule := CapsuleMesh.new()
-	capsule.radius = 0.38
-	capsule.height = 1.8
-	mesh.mesh = capsule
-	mesh.position.y = 0.9
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	mesh.material_override = material
-	root.add_child(mesh)
+	Humanoid.build(root, color, Color("bf957b"), Color("392d27"))
 	var label := Label3D.new()
 	label.text = title
 	label.position.y = 2.3
@@ -184,6 +264,11 @@ func _process(delta: float) -> void:
 			_set_stage("exit")
 
 func _on_attack() -> void:
+	for monster in get_tree().get_nodes_in_group("story_monsters"):
+		if is_instance_valid(monster) and player.global_position.distance_to(monster.global_position) < 3.0:
+			monster.hit()
+			if stage not in ["duel", "counter"]:
+				dialogue_label.text = "The hollow recoils."
 	if stage in ["duel", "counter"]:
 		if player.global_position.distance_to(ren.global_position) > 3.0:
 			dialogue_label.text = "REN: Come closer if you want to land that."

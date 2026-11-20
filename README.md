@@ -19,3 +19,5 @@ Sketchfab and Mixamo are planned sources for models and character animations. Th
 ## Asset credit
 
 "Maw of the Void - Free Creature Asset" by Yury Misiyuk, https://skfb.ly/pINRD, is licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/. The original GLB is included; its displayed size was adjusted in the game.
+
+The optional local story scenery uses “Residential buildings, ancient villages” by Metazeon, https://sketchfab.com/3d-models/residential-buildings-ancient-villages-e5b10c097c8a48e991870aa86868c45e, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The model is scaled and positioned as a backdrop. The GLB is included at the project root for desktop scenery; the Android prototype omits this high-resolution scan for performance.

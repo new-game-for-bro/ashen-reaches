@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://d0k4p001jeqn"]
 
-[ext_resource type="Script" path="res://world.gd" id="1"]
+[ext_resource type="Script" uid="uid://bah35ikuoqjtu" path="res://world.gd" id="1"]
 
-[node name="World" type="Node3D"]
+[node name="World" type="Node3D" unique_id=1792847778]
+transform = Transform3D(0.79120624, 0.10221613, 0.6029466, -0.4952958, -0.47120723, 0.7298259, 0.35871276, -0.8760798, -0.32219487, -1.3299912, -1.2248414, -2.5320146)
 script = ExtResource("1")

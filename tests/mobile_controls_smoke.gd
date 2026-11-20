@@ -26,21 +26,21 @@ func run_test() -> void:
 	look_touch.position = Vector2(view_size.x * 0.65, view_size.y * 0.3)
 	look_touch.pressed = true
 	controls._unhandled_input(look_touch)
-	var old_camera_yaw: float = player.camera_pivot.rotation.y
+	var old_camera_yaw: float = player.camera_target_yaw
 	var look_move := InputEventScreenDrag.new()
 	look_move.index = 5
 	look_move.relative = Vector2(20, 0)
 	controls._unhandled_input(look_move)
-	assert(player.camera_pivot.rotation.y < old_camera_yaw)
+	assert(player.camera_target_yaw < old_camera_yaw)
 	assert(controls.move_vector.length() > 0.0)
 	look_touch.pressed = false
 	controls._unhandled_input(look_touch)
 	touch.pressed = false
 	stick._gui_input(touch)
 	assert(controls.move_vector == Vector2.ZERO)
-	var old_yaw: float = player.camera_pivot.rotation.y
+	var old_yaw: float = player.camera_target_yaw
 	controls.look_dragged.emit(Vector2(10, 0))
-	assert(player.camera_pivot.rotation.y < old_yaw)
+	assert(player.camera_target_yaw < old_yaw)
 	player.global_position = Vector3(0, 0, -4)
 	controls._on_action("Attack")
 	assert(game.stage == "dodge")
