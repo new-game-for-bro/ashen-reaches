@@ -1,0 +1,17 @@
+name: Inspect Android test signature
+on:
+  push:
+    branches: [diagnostics/apk-signer]
+permissions:
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect previous APK signing certificate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api repos/new-game-for-bro/ashen-reaches/actions/artifacts/14634607264/zip > /tmp/artifact.zip
+          unzip -q /tmp/artifact.zip -d /tmp/apk
+          "$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)" verify --print-certs /tmp/apk/Ashen-Reaches-debug.apk
