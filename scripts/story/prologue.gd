@@ -59,8 +59,10 @@ func _build_world() -> void:
 	_build_navigation()
 	_build_road_details()
 	_build_fantasy_village()
+	_place_fountain()
 	_build_colorful_nature()
 	_build_dungeon_approach()
+	_place_reaper()
 	_box(Vector3(-8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(0, 8, -39), Vector3(9, 1, 2), Color("464c55"), true)
@@ -110,6 +112,35 @@ func _add_village_backdrop() -> void:
 	village.scale = Vector3.ONE * 0.18
 	village.position = Vector3(39, -2.0, -32)
 	add_child(village)
+
+func _place_fountain() -> void:
+	var path := "res://models/environment/ancient_corinth_-_peirene_fountain.glb"
+	if not ResourceLoader.exists(path, "PackedScene"):
+		return
+	var fountain_scene := load(path) as PackedScene
+	if fountain_scene == null:
+		return
+	var fountain := fountain_scene.instantiate() as Node3D
+	if fountain == null:
+		return
+	fountain.name = "AncientFountain"
+	fountain.scale = Vector3.ONE * 0.13
+	fountain.position = Vector3(23, 0.56, -15)
+	add_child(fountain)
+
+func _place_reaper() -> void:
+	var path := "res://models/environment/death_reaper.glb"
+	if not ResourceLoader.exists(path, "PackedScene"):
+		return
+	var scene := load(path) as PackedScene
+	if scene == null:
+		return
+	var statue := scene.instantiate() as Node3D
+	if statue == null:
+		return
+	statue.name = "CryptReaperStatue"
+	statue.position = Vector3(-31, 0.02, -40)
+	add_child(statue)
 
 func _build_navigation() -> void:
 	# A flat navigation polygon covers the same continuous ground as the collision floor.

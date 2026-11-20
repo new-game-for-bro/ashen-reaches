@@ -21,3 +21,5 @@ Sketchfab and Mixamo are planned sources for models and character animations. Th
 "Maw of the Void - Free Creature Asset" by Yury Misiyuk, https://skfb.ly/pINRD, is licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/. The original GLB is included; its displayed size was adjusted in the game.
 
 The project includes “Residential buildings, ancient villages” by Metazeon, https://sketchfab.com/3d-models/residential-buildings-ancient-villages-e5b10c097c8a48e991870aa86868c45e, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The high-resolution scan is retained at the project root but is not used in the current story scene; the village currently uses original procedural geometry.
+
+The `models` folder uses Git LFS. Install Git LFS and run `git lfs pull` after cloning to obtain the full model files. The `environment` folder contains models used by the current scene; `library` holds high-detail source models that Godot skips importing until selected and optimized. Credits and source links are in `models/ATTRIBUTION.md`.
