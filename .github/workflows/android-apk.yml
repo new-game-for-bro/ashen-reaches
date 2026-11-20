@@ -39,6 +39,8 @@ jobs:
           GODOT=/tmp/godot/Godot_v4.7.2-stable_linux.x86_64
           "$GODOT" --headless --editor --path . --import
           timeout 120 "$GODOT" --headless --path . --script res://tests/model_probe.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/story_smoke.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/royale_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_controls_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_layout_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/net_intents_test.gd

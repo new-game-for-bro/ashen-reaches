@@ -8,7 +8,7 @@ func run_test() -> void:
 	assert(game.stage == "duel")
 	game._on_attack()
 	assert(game.stage == "duel")
-	game.player.global_position = Vector3(0, 0, -4)
+	game.player.global_position = game.ren.global_position + Vector3(0, 0, 1)
 	game._on_attack()
 	assert(game.stage == "dodge")
 	game._on_dodge()
