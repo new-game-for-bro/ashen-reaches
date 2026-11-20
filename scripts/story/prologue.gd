@@ -61,12 +61,13 @@ func _build_world() -> void:
 	var floor_box := BoxShape3D.new()
 	floor_box.size = Vector3(90, 1, 90)
 	floor_shape.shape = floor_box
-	floor_body.position = Vector3(0, -0.5, -18)
+	floor_body.position = Vector3(0, -10.5, -18)
 	floor_body.add_child(floor_shape)
 	add_child(floor_body)
 	WorldModels.add_to(self, Vector3(0, 0, -18), 70.0)
 	_build_navigation()
 	ren = _person(REN_POS, Color("a17b69"), "REN")
+	WorldModels.ground_after_physics(ren)
 	train = Node3D.new()
 	train.position = TRAIN_POS
 	add_child(train)
@@ -75,7 +76,7 @@ func _build_world() -> void:
 	player.name = "Amara"
 	player.set_script(PlayerScript)
 	add_child(player)
-	player.position = Vector3(0, 0.1, 2)
+	player.position = Vector3(0, 5.0, 2)
 	player.add_to_group("player")
 	_spawn_ruin_monster()
 	player.attack_requested.connect(_on_attack)
@@ -155,8 +156,10 @@ func _set_stage(value: String) -> void:
 		timer = 8.0
 	elif value == "gate":
 		ren.position = GATE_POS + Vector3(2, 0, 4)
+		WorldModels.ground_after_physics(ren)
 	elif value == "train":
 		ren.position = TRAIN_POS + Vector3(-4, 0, 3)
+		WorldModels.ground_after_physics(ren)
 	elif value == "ending":
 		ren.visible = false
 		var departing := create_tween()

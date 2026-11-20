@@ -1,4 +1,6 @@
 extends CharacterBody3D
+
+const WorldModels = preload("res://scripts/world/model_environment.gd")
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 
 const SPEED: float = 5.0
@@ -28,6 +30,7 @@ var visual: Node3D
 var label: Label3D
 
 func _ready() -> void:
+	WorldModels.ground_after_physics(self)
 	var collider := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.4

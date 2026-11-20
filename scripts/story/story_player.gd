@@ -1,4 +1,6 @@
 extends CharacterBody3D
+
+const WorldModels = preload("res://scripts/world/model_environment.gd")
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 const Humanoid = preload("res://scripts/story/humanoid.gd")
 signal interact_requested
@@ -18,6 +20,7 @@ var camera_target_yaw := 0.0
 var camera_target_pitch := -0.12
 
 func _ready() -> void:
+	WorldModels.ground_after_physics(self)
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.38
