@@ -1,7 +1,7 @@
 name: Private Android APK
 on:
   push:
-    branches: [feature/character-selection]
+    branches: [main, feature/corinth-environment, feature/character-selection]
   workflow_dispatch:
 permissions:
   contents: read
