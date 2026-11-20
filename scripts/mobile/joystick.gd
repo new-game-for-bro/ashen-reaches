@@ -24,7 +24,7 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 func _update_vector(pos: Vector2) -> void:
-	value = ((pos - size / 2.0) / RADIUS).limit_length(1.0)
+	value = ((pos - size / 2.0) / (RADIUS * minf(size.x, size.y) / 180.0)).limit_length(1.0)
 	if value.length() < 0.12:
 		value = Vector2.ZERO
 	vector_changed.emit(value)
@@ -32,9 +32,10 @@ func _update_vector(pos: Vector2) -> void:
 
 func _draw() -> void:
 	var center := size / 2.0
-	draw_circle(center, RADIUS, Color(0.12, 0.15, 0.19, 0.6))
-	draw_arc(center, RADIUS, 0, TAU, 48, Color(0.8, 0.83, 0.86, 0.5), 2)
-	draw_circle(center + value * RADIUS, 27, Color(0.8, 0.83, 0.86, 0.7))
+	var radius := RADIUS * minf(size.x, size.y) / 180.0
+	draw_circle(center, radius, Color(0.12, 0.15, 0.19, 0.6))
+	draw_arc(center, radius, 0, TAU, 48, Color(0.8, 0.83, 0.86, 0.5), 2)
+	draw_circle(center + value * radius, 27 * radius / RADIUS, Color(0.8, 0.83, 0.86, 0.7))
 
 func reset() -> void:
 	touch_id = -1
