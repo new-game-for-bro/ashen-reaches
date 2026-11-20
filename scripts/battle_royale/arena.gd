@@ -3,7 +3,8 @@ extends Node3D
 const WorldModels = preload("res://scripts/world/model_environment.gd")
 
 const BotScript = preload("res://scripts/battle_royale/bot.gd")
-const INITIAL_RADIUS: float = 42.0
+const MAP_WIDTH: float = 600.0
+const INITIAL_RADIUS: float = MAP_WIDTH / 2.0
 const FINAL_RADIUS: float = 8.0
 const SHRINK_DELAY: float = 12.0
 const SHRINK_DURATION: float = 110.0
@@ -20,7 +21,7 @@ var health_label: Label
 var result: Label
 
 func _ready() -> void:
-	WorldModels.add_to(self, Vector3.ZERO, 75.0)
+	WorldModels.add_to(self, Vector3.ZERO, MAP_WIDTH)
 	_build_environment()
 	_build_ui()
 	_build_ring()
@@ -99,8 +100,15 @@ func _build_ring() -> void:
 
 func _build_environment() -> void:
 	var environment := Environment.new()
-	environment.background_mode = Environment.BG_COLOR
-	environment.background_color = Color("202830")
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color("315b91")
+	sky_material.sky_horizon_color = Color("e4aa83")
+	sky_material.ground_bottom_color = Color("39493f")
+	sky_material.ground_horizon_color = Color("aaa78e")
+	sky.sky_material = sky_material
+	environment.background_mode = Environment.BG_SKY
+	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("a4adb5")
 	environment.ambient_light_energy = 0.75

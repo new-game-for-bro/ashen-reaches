@@ -49,14 +49,16 @@ func _ready() -> void:
 	username.text = "Emberbound"
 	username.max_length = 24
 	column.add_child(username)
+	username.hide()
 	address = LineEdit.new()
 	address.placeholder_text = "Server IP or hostname"
 	address.text = "127.0.0.1"
 	column.add_child(address)
+	address.hide()
 	var buttons := GridContainer.new()
 	buttons.columns = 3
 	column.add_child(buttons)
-	for action: String in ["Story prologue", "Solo arena", "Battle Royale", "Host", "Join", "Disconnect", "Quit"]:
+	for action: String in ["Battle Royale", "Quit"]:
 		var button := Button.new()
 		button.text = action
 		button.custom_minimum_size = Vector2(175, 50)
@@ -69,15 +71,18 @@ func _ready() -> void:
 	roster = Label.new()
 	roster.text = "Players: —"
 	column.add_child(roster)
+	roster.hide()
 	history = RichTextLabel.new()
 	history.custom_minimum_size = Vector2(0, 110)
 	history.bbcode_enabled = false
 	column.add_child(history)
+	history.hide()
 	message_input = LineEdit.new()
 	message_input.placeholder_text = "Chat message (press Enter)"
 	message_input.max_length = 200
 	message_input.text_submitted.connect(_send_message)
 	column.add_child(message_input)
+	message_input.hide()
 	NetworkManager.connection_state_changed.connect(_set_status)
 	NetworkManager.roster_changed.connect(_set_roster)
 	NetworkManager.chat_received.connect(_receive_message)
