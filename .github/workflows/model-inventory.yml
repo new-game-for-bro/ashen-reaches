@@ -1,7 +1,6 @@
 name: Inspect world models in cloud
 on:
-  push:
-    branches: [feature/model-world-plan]
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
