@@ -1,7 +1,7 @@
 name: Private Android APK
 on:
   push:
-    branches: [main, fix/world-collision]
+    branches: [main, feature/corinth-environment]
   workflow_dispatch:
 permissions:
   contents: read
@@ -41,6 +41,10 @@ jobs:
           timeout 120 "$GODOT" --headless --path . --script res://tests/model_probe.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_controls_smoke.gd
           timeout 90 "$GODOT" --headless --path . --script res://tests/mobile_layout_smoke.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/net_intents_test.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/join_code_test.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/match_state_test.gd
+          timeout 90 "$GODOT" --headless --path . --script res://tests/match_ticket_test.gd
           mkdir -p /tmp/ashen-android
           "$GODOT" --headless --path . --export-debug Android /tmp/ashen-android/Ashen-Reaches-debug.apk
           test -s /tmp/ashen-android/Ashen-Reaches-debug.apk

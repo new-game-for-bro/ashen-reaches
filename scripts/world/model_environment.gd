@@ -1,17 +1,17 @@
 extends RefCounted
 
-# This is the original model from models/library, made importable outside .gdignore.
+# The matching GLB contains the fountain geometry and its textures.
 static var collision_shapes: Dictionary = {}
-const CLOISTER = preload("res://models/environment/cloister_of_cathedral_of_st._mary.glb")
+const FOUNTAIN = preload("res://models/environment/ancient_corinth_-_peirene_fountain.glb")
 
 static func add_to(parent: Node3D, center: Vector3, width: float) -> void:
-	var model := CLOISTER.instantiate() as Node3D
-	model.name = "CloisterEnvironment"
+	var model := FOUNTAIN.instantiate() as Node3D
+	model.name = "CorinthFountainEnvironment"
 	parent.add_child(model)
 	var points: Array[Vector3] = []
 	_collect_points(model, Transform3D.IDENTITY, points)
 	if points.is_empty():
-		push_error("The cloister model has no visible meshes")
+		push_error("The fountain model has no visible meshes")
 		return
 	var low := points[0]
 	var high := points[0]
@@ -20,7 +20,7 @@ static func add_to(parent: Node3D, center: Vector3, width: float) -> void:
 		high = high.max(point)
 	var span := maxf(high.x - low.x, high.z - low.z)
 	if span <= 0.001:
-		push_error("The cloister model has invalid dimensions")
+		push_error("The fountain model has invalid dimensions")
 		return
 	var factor := width / span
 	model.scale = Vector3.ONE * factor

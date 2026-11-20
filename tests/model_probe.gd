@@ -11,7 +11,7 @@ func run_test() -> void:
 	var space := world.get_world_3d().direct_space_state
 	var ground_query := PhysicsRayQueryParameters3D.create(Vector3(0, 10, 2), Vector3(0, -10, 2))
 	var ground := space.intersect_ray(ground_query)
-	assert(not ground.is_empty() and ground.position.y > 0.3)
+	assert(not ground.is_empty() and ground.normal.y > 0.4)
 	print("PASS: model ground hit at ", ground.position)
 	var wall := {}
 	var from := Vector3.ZERO
