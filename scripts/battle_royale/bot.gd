@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const WorldModels = preload("res://scripts/world/model_environment.gd")
+
 signal eliminated(bot: Node)
 const SPEED: float = 3.4
 const DAMAGE: int = 12
@@ -10,6 +12,7 @@ var alive: bool = true
 var label: Label3D
 
 func _ready() -> void:
+	WorldModels.ground_after_physics(self)
 	add_to_group("royale_contestants")
 	add_to_group("training_targets")
 	var collision := CollisionShape3D.new()
