@@ -58,8 +58,11 @@ static func play(player: AnimationPlayer, state: String) -> void:
 	if not is_instance_valid(player):
 		return
 	var name: String = ACTIONS.get(state, "rifle_aiming_idle")
-	if player.has_animation(name) and player.current_animation != name:
-		player.play(name, 0.12)
+	if player.has_animation(name):
+		var clip := player.get_animation(name)
+		clip.loop_mode = Animation.LOOP_LINEAR if state in ["idle", "walk", "run"] else Animation.LOOP_NONE
+		if player.current_animation != name or not player.is_playing():
+			player.play(name, 0.12)
 
 static func _find_player(node: Node) -> AnimationPlayer:
 	if node is AnimationPlayer and node.get_animation_list().size() > 0:
