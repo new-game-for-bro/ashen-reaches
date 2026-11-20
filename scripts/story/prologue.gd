@@ -34,31 +34,32 @@ func _build_world() -> void:
 	var env := Environment.new()
 	var sky := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color("29394d")
-	sky_material.sky_horizon_color = Color("a58d83")
-	sky_material.ground_bottom_color = Color("292d30")
-	sky_material.ground_horizon_color = Color("7c7472")
+	sky_material.sky_top_color = Color("365f91")
+	sky_material.sky_horizon_color = Color("f0b28b")
+	sky_material.ground_bottom_color = Color("395743")
+	sky_material.ground_horizon_color = Color("b9bd9a")
 	sky.sky_material = sky_material
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("a5b8c9")
+	env.ambient_light_color = Color("d8e6ed")
 	env.ambient_light_energy = 0.6
 	env.fog_enabled = true
-	env.fog_light_color = Color("827b7a")
-	env.fog_density = 0.01
+	env.fog_light_color = Color("b5c6bd")
+	env.fog_density = 0.0035
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	add_child(world_env)
 	var sun := DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, -30, 0)
-	sun.light_color = Color("e3c3a5")
-	sun.light_energy = 0.85
+	sun.light_color = Color("ffe1b0")
+	sun.light_energy = 1.05
 	add_child(sun)
-	_box(Vector3(0, -0.5, -18), Vector3(90, 1, 90), Color("414943"), true)
+	_box(Vector3(0, -0.5, -18), Vector3(90, 1, 90), Color("638653"), true)
 	_build_navigation()
 	_build_road_details()
 	_build_fantasy_village()
+	_build_colorful_nature()
 	_build_dungeon_approach()
 	_box(Vector3(-8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
 	_box(Vector3(8, 4, -39), Vector3(8, 8, 2), Color("353c45"), true)
@@ -129,9 +130,9 @@ func _spawn_ruin_monster() -> void:
 
 func _build_dungeon_approach() -> void:
 	# Visible landmark with a broad, open approach on the west side of the village.
-	_box(Vector3(-29, 2, -43), Vector3(2, 4, 2), Color("514b49"), true)
-	_box(Vector3(-21, 2, -43), Vector3(2, 4, 2), Color("514b49"), true)
-	_box(Vector3(-25, 4, -43), Vector3(10, 1, 2), Color("625a54"), true)
+	_box(Vector3(-29, 2, -43), Vector3(2, 4, 2), Color("776188"), true)
+	_box(Vector3(-21, 2, -43), Vector3(2, 4, 2), Color("776188"), true)
+	_box(Vector3(-25, 4, -43), Vector3(10, 1, 2), Color("a583aa"), true)
 	_box(Vector3(-25, 1.8, -43.2), Vector3(6, 3.6, 0.15), Color("181b1b"))
 	_label("HOLLOW CRYPT", Vector3(-25, 5.5, -43))
 
@@ -140,7 +141,7 @@ func _build_road_details() -> void:
 	var stone_mesh := BoxMesh.new()
 	stone_mesh.size = Vector3(1.55, 0.035, 1.85)
 	var stone_mat := StandardMaterial3D.new()
-	stone_mat.albedo_color = Color("535a60")
+	stone_mat.albedo_color = Color("b5a48c")
 	stone_mat.roughness = 1.0
 	stone_mesh.material = stone_mat
 	var instances := MultiMesh.new()
@@ -158,9 +159,9 @@ func _build_road_details() -> void:
 	for z in [0.0, -11.0, -24.0]:
 		for side in [-1.0, 1.0]:
 			var x: float = side * 9.3
-			_box(Vector3(x, 0.5, z), Vector3(1.3, 1.0, 1.3), Color("42494e"))
-			_box(Vector3(x, 1.8, z), Vector3(0.75, 2.6, 0.75), Color("555a5a"))
-			_box(Vector3(x, 3.2, z), Vector3(1.1, 0.25, 1.1), Color("62625b"))
+			_box(Vector3(x, 0.5, z), Vector3(1.3, 1.0, 1.3), Color("7d8581"))
+			_box(Vector3(x, 1.8, z), Vector3(0.75, 2.6, 0.75), Color("b2a59a"))
+			_box(Vector3(x, 3.2, z), Vector3(1.1, 0.25, 1.1), Color("d3bf9d"))
 
 # Original geometry inspired by misty ruined-village references; no Pinterest images are used as assets.
 func _build_fantasy_village() -> void:
@@ -178,9 +179,27 @@ func _build_fantasy_village() -> void:
 	for i in range(8):
 		_box(Vector3(-8.0 - i * 2.2, 0.03, -33.0 - i * 1.15), Vector3(2.0, 0.06, 1.5), Color("52524c"))
 
+func _build_colorful_nature() -> void:
+	# Low-cost clusters of foliage and flowers stay clear of the road and objectives.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 87142
+	for i in range(45):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := side * rng.randf_range(20.0, 41.0)
+		var z := rng.randf_range(-55.0, 18.0)
+		var patch := _cylinder(Vector3(x, 0.12, z), rng.randf_range(0.4, 1.0), 0.24, Color("4d9c65"), 5)
+		patch.name = "FoliagePatch"
+		var blossoms := _cylinder(Vector3(x, 0.31, z), 0.13, 0.2, [Color("f0a1be"), Color("ecca66"), Color("a4a4ec")][i % 3], 5)
+		blossoms.name = "Wildflowers"
+	for tree in [Vector3(-29, 0, 5), Vector3(30, 0, -12), Vector3(-33, 0, -29), Vector3(34, 0, -39), Vector3(-30, 0, -52)]:
+		var crown := _cylinder(tree + Vector3(0, 6.4, 0), 2.3, 2.5, Color("518d67"), 7)
+		crown.name = "TreeCanopy"
+	for side in [-1.0, 1.0]:
+		_box(Vector3(side * 4.7, 4.8, -38), Vector3(0.08, 2.4, 1.1), Color("b9504f"))
+
 func _build_ruined_house(pos: Vector3, side: float) -> void:
-	var wall := Color("56574e")
-	var wood := Color("2a2a28")
+	var wall := Color("b69579")
+	var wood := Color("654737")
 	# Two masonry walls and an open street-facing facade keep the silhouette readable.
 	_box(pos + Vector3(0, 1.55, -3), Vector3(6.2, 3.1, 0.45), wall)
 	_box(pos + Vector3(0, 1.55, 3), Vector3(6.2, 3.1, 0.45), wall)
@@ -190,7 +209,7 @@ func _build_ruined_house(pos: Vector3, side: float) -> void:
 	_box(pos + Vector3(-side * 3, 2.85, 0), Vector3(0.4, 0.35, 6.0), wood)
 	# Broken sloped roofs made from two weathered beams and roof slabs.
 	for slope in [-1.0, 1.0]:
-		var roof := _detail_box(pos + Vector3(slope * 1.55, 3.85, 0), Vector3(3.7, 0.18, 6.8), Color("353632"))
+		var roof := _detail_box(pos + Vector3(slope * 1.55, 3.85, 0), Vector3(3.7, 0.18, 6.8), Color("87554b"))
 		roof.rotation.z = -slope * 0.46
 		var beam := _detail_box(pos + Vector3(slope * 1.65, 3.75, -3.25), Vector3(3.8, 0.16, 0.18), wood)
 		beam.rotation.z = -slope * 0.46
