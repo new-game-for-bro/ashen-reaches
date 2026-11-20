@@ -141,6 +141,8 @@ func fire_rifle() -> void:
 	if ammunition <= 0:
 		reload_rifle()
 		return
+	var forward := -pivot.global_basis.z
+	visual.rotation.y = atan2(forward.x, forward.z)
 	ammunition -= 1
 	attack_time = RIFLE_INTERVAL
 	ammo_changed.emit(ammunition, reserve_ammunition, false)
