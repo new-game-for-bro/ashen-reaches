@@ -1,0 +1,40 @@
+name: Private Godot web preview
+on:
+  push:
+    branches: [preview/godot-web]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - name: Fetch game models
+        run: |
+          git lfs pull --include="models/environment/*.glb"
+          git config --local --unset-all http.https://github.com/.extraheader || true
+      - name: Install Godot and web templates
+        run: |
+          curl --fail --location --retry 3 -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
+          curl --fail --location --retry 3 -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          unzip -q /tmp/templates.tpz 'templates/web_*' -d /tmp/godot-templates
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.7.2.stable"
+          cp /tmp/godot-templates/templates/web_* "$HOME/.local/share/godot/export_templates/4.7.2.stable/"
+      - name: Import and export
+        run: |
+          GODOT=/tmp/godot/Godot_v4.7.2-stable_linux.x86_64
+          "$GODOT" --headless --editor --path . --import
+          mkdir -p /tmp/ashen-web
+          "$GODOT" --headless --path . --export-release "Web Preview" /tmp/ashen-web/index.html
+      - name: Save private build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ashen-reaches-web-preview
+          path: /tmp/ashen-web/
+          if-no-files-found: error
+          retention-days: 7
