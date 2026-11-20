@@ -1,5 +1,7 @@
 extends Node
 
+const CharacterCatalog = preload("res://scripts/characters/character_catalog.gd")
+
 signal roster_changed(players: Dictionary)
 signal chat_received(sender_name: String, message: String)
 signal connection_state_changed(state: String)
@@ -15,6 +17,7 @@ var pending_address: String = ""
 var pending_username: String = ""
 var pending_port: int = DEFAULT_PORT
 var players: Dictionary = {}
+var character_choices: Dictionary = {}
 var player_name: String = "Emberbound"
 var chat_times: Dictionary = {}
 
@@ -37,6 +40,7 @@ func host_server(username: String, port: int = DEFAULT_PORT, is_dedicated: bool 
 	multiplayer.multiplayer_peer = peer
 	if not dedicated:
 		players[1] = player_name
+		character_choices[1] = CharacterCatalog.selected_id()
 	roster_changed.emit(players.duplicate())
 	connection_state_changed.emit("hosting")
 	return OK
@@ -59,6 +63,7 @@ func disconnect_session() -> void:
 		multiplayer.multiplayer_peer.close()
 		multiplayer.multiplayer_peer = null
 	players.clear()
+	character_choices.clear()
 	chat_times.clear()
 	roster_changed.emit({})
 
@@ -71,17 +76,18 @@ func send_chat(message: String) -> void:
 		_submit_chat.rpc_id(1, message)
 
 func _connected() -> void:
-	_register_name.rpc_id(1, player_name)
+	_register_name.rpc_id(1, player_name, CharacterCatalog.selected_id())
 	connection_state_changed.emit("connected")
 
 @rpc("any_peer", "call_remote", "reliable")
-func _register_name(requested_name: String) -> void:
+func _register_name(requested_name: String, character_id: int = 0) -> void:
 	if not multiplayer.is_server():
 		return
 	var sender: int = multiplayer.get_remote_sender_id()
 	if sender <= 1 or not multiplayer.get_peers().has(sender) or players.has(sender) or requested_name.length() > 128:
 		return
 	players[sender] = _sanitize_name(requested_name)
+	character_choices[sender] = character_id if CharacterCatalog.is_available(character_id) else 0
 	_publish_roster()
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -116,6 +122,7 @@ func _set_roster(value: Dictionary) -> void:
 func _peer_disconnected(id: int) -> void:
 	if multiplayer.is_server():
 		players.erase(id)
+		character_choices.erase(id)
 		chat_times.erase(id)
 		_publish_roster()
 

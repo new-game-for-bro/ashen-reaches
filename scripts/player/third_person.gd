@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const CharacterCatalog = preload("res://scripts/characters/character_catalog.gd")
+
 const WorldModels = preload("res://scripts/world/model_environment.gd")
 
 signal health_changed(value: int)
@@ -132,8 +134,14 @@ func _lock_target() -> void:
 func _play_animation(name: String) -> void:
 	if animation.has_animation(name) and animation.current_animation != name:
 		animation.play(name)
+	else:
+		CharacterCatalog.play(animation, name)
 
 func _add_placeholder() -> void:
+	var chosen := CharacterCatalog.attach(visual, CharacterCatalog.selected_id())
+	if chosen:
+		animation = chosen
+		return
 	var body := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
 	capsule.radius = 0.4

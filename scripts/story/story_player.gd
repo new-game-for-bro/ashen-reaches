@@ -1,11 +1,14 @@
 extends CharacterBody3D
 
+const CharacterCatalog = preload("res://scripts/characters/character_catalog.gd")
+
 const WorldModels = preload("res://scripts/world/model_environment.gd")
 const TouchControls = preload("res://scripts/mobile/touch_controls.gd")
 const Humanoid = preload("res://scripts/story/humanoid.gd")
 signal interact_requested
 signal attack_requested
 signal dodge_requested
+var character_animation: AnimationPlayer
 var touch_controls: CanvasLayer
 var camera_pivot: Node3D
 var avatar: Node3D
@@ -30,7 +33,9 @@ func _ready() -> void:
 	add_child(shape)
 	avatar = Node3D.new()
 	add_child(avatar)
-	Humanoid.build(avatar, Color("566677"), Color("b98c73"), Color("332b29"))
+	character_animation = CharacterCatalog.attach(avatar, CharacterCatalog.selected_id())
+	if not character_animation:
+		Humanoid.build(avatar, Color("566677"), Color("b98c73"), Color("332b29"))
 	sword = Node3D.new()
 	sword.position = Vector3(0.55, 1, 0.15)
 	avatar.add_child(sword)
@@ -94,6 +99,7 @@ func attack() -> void:
 	if attack_delay > 0.0:
 		return
 	attack_delay = 0.5
+	CharacterCatalog.play(character_animation, "attack_light_1")
 	var swing := create_tween()
 	sword.rotation.z = 0
 	swing.tween_property(sword, "rotation:z", -1.5, 0.12)
@@ -118,6 +124,8 @@ func _physics_process(delta: float) -> void:
 	velocity.y = velocity.y - 20.0 * delta if not is_on_floor() else 0.0
 	if direction.length() > 0.1:
 		avatar.rotation.y = lerp_angle(avatar.rotation.y, atan2(direction.x, direction.z), minf(1.0, delta * 12.0))
+	if attack_delay <= 0.0:
+		CharacterCatalog.play(character_animation, "dodge" if dodge_time > 0.0 else "walk" if direction.length() > 0.1 else "idle")
 	move_and_slide()
 
 
