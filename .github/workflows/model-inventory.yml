@@ -1,0 +1,24 @@
+name: Inspect world models in cloud
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          lfs: false
+      - name: Download model library from Git LFS
+        run: |
+          git lfs pull --include="models/**/*.glb"
+          git config --local --unset-all http.https://github.com/.extraheader || true
+      - name: Inspect model metadata
+        run: python3 tools/inventory_models.py | tee model-inventory.txt
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: model-inventory
+          path: model-inventory.txt
+          retention-days: 30
