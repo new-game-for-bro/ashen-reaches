@@ -14,12 +14,10 @@ This is a prototype using generated placeholder geometry. The dungeon gateways a
 
 ## Art and animation
 
-Sketchfab and Mixamo are planned sources for models and character animations. The Maw of the Void model is included as the hollow monster. Check each model's license and attribution, and verify the character rig and animation compatibility before importing. For example, [Maw of the Void by Yury Misiyuk](https://sketchfab.com/3d-models/maw-of-the-void-free-creature-asset-402848d2da654330bc9c3f23ec06cf8d) is a possible CC Attribution creature, but has not been imported or validated for this project.
+The game uses the newer model collection for environment and character placeholders. The reaper serves as the current enemy and crypt statue; animation and game-ready optimization are still needed.
 
-## Asset credit
+## Asset credits
 
-"Maw of the Void - Free Creature Asset" by Yury Misiyuk, https://skfb.ly/pINRD, is licensed under Creative Commons Attribution 4.0: https://creativecommons.org/licenses/by/4.0/. The original GLB is included; its displayed size was adjusted in the game.
-
-The project includes “Residential buildings, ancient villages” by Metazeon, https://sketchfab.com/3d-models/residential-buildings-ancient-villages-e5b10c097c8a48e991870aa86868c45e, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). The high-resolution scan is retained at the project root but is not used in the current story scene; the village currently uses original procedural geometry.
+See `models/ATTRIBUTION.md` for creators, source links, and licenses.
 
 The `models` folder uses Git LFS. Install Git LFS and run `git lfs pull` after cloning to obtain the full model files. The `environment` folder contains models used by the current scene; `library` holds high-detail source models that Godot skips importing until selected and optimized. Credits and source links are in `models/ATTRIBUTION.md`.

@@ -1,7 +1,7 @@
 extends Node3D
 
 const PlayerScript = preload("res://player.gd")
-const MawScene = preload("res://maw_of_the_void_-_free_creature_asset.glb")
+const ReaperScene = preload("res://models/environment/death_reaper.glb")
 const MonsterScript = preload("res://monster.gd")
 const MapScript = preload("res://world_map.gd")
 var player: CharacterBody3D
@@ -180,9 +180,9 @@ func _spawn_monster(pos: Vector3) -> void:
 	body.name = "Visual"
 	body.position.y = 1.1
 	monster.add_child(body)
-	var model := MawScene.instantiate() as Node3D
-	model.scale = Vector3.ONE * 2.4
-	model.position.y = -0.4
+	var model := ReaperScene.instantiate() as Node3D
+	model.scale = Vector3.ONE * 0.65
+	model.position.y = -1.1
 	body.add_child(model)
 	var animation := model.find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if animation and not animation.get_animation_list().is_empty():

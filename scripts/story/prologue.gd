@@ -3,7 +3,6 @@ extends Node3D
 const PlayerScript = preload("res://scripts/story/story_player.gd")
 const Humanoid = preload("res://scripts/story/humanoid.gd")
 const RuinMonster = preload("res://scripts/story/ruin_monster.gd")
-const VILLAGE_PATH := "res://residential_buildings_ancient_villages.glb"
 const REN_POS := Vector3(0, 0, -5)
 const GATE_POS := Vector3(0, 0, -38)
 const TRAIN_POS := Vector3(25, 0, -38)
@@ -96,22 +95,6 @@ func _build_world() -> void:
 	player.attack_requested.connect(_on_attack)
 	player.interact_requested.connect(_on_interact)
 	player.dodge_requested.connect(_on_dodge)
-
-# The scan is scenery beside the playable route; the existing floor and walls
-# provide simple collision and keep the story route accessible.
-func _add_village_backdrop() -> void:
-	if not ResourceLoader.exists(VILLAGE_PATH, "PackedScene"):
-		return
-	var scene := load(VILLAGE_PATH) as PackedScene
-	if scene == null:
-		return
-	var village := scene.instantiate() as Node3D
-	if village == null:
-		return
-	village.name = "AncientVillageBackdrop"
-	village.scale = Vector3.ONE * 0.18
-	village.position = Vector3(39, -2.0, -32)
-	add_child(village)
 
 func _place_fountain() -> void:
 	var path := "res://models/environment/ancient_corinth_-_peirene_fountain.glb"

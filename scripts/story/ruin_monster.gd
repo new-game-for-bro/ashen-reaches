@@ -1,5 +1,5 @@
 extends CharacterBody3D
-const MAW_SCENE = preload("res://maw_of_the_void_-_free_creature_asset.glb")
+const REAPER_SCENE = preload("res://models/environment/death_reaper.glb")
 
 # Patrols the side lane until the player approaches; stays out of the duel area.
 var patrol_points: Array[Vector3] = []
@@ -22,11 +22,11 @@ func _ready() -> void:
 	agent.path_desired_distance = 0.7
 	agent.target_desired_distance = 1.0
 	add_child(agent)
-	var model_scene: PackedScene = MAW_SCENE
+	var model_scene: PackedScene = REAPER_SCENE
 	if model_scene:
 		var visual := model_scene.instantiate() as Node3D
-		visual.position.y = 0.7
-		visual.scale = Vector3.ONE * 1.5
+		visual.position.y = 0.0
+		visual.scale = Vector3.ONE * 0.65
 		add_child(visual)
 		var animation := visual.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		if animation and not animation.get_animation_list().is_empty():
